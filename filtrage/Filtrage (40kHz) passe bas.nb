@@ -1,0 +1,641 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 9.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[     24963,        632]
+NotebookOptionsPosition[     23541,        583]
+NotebookOutlinePosition[     23983,        600]
+CellTagsIndexPosition[     23940,        597]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"R1", "=", "1200"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"R2", "=", "1200"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"C1", "=", 
+   RowBox[{"47", "*", 
+    RowBox[{"10", "^", 
+     RowBox[{"-", "9"}]}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"C2", "=", 
+   RowBox[{"220", "*", 
+    RowBox[{"10", "^", 
+     RowBox[{"-", "12"}]}]}]}], ";"}]}], "Input",
+ CellChangeTimes->CompressedData["
+1:eJxTTMoPSmViYGAQAWIQ/WJykc1f1deOQn3SbiB69T6XMBCddNoiHERfEPsn
+8g9Ii4WLi4Jofu6ZkiD6x68DYFo+u0oNRL9K6gfTkxrPZPwH0jFPnoHpukNT
+zxSrvXY8t7bqPIhO6H6vUAKk12v3qYPoZ8WPo0B0gt/UaBDtd8O7FUT3RawB
+058Ofl/WCqR/HfwPpv2uini2AenYQ91eILrH1ElsGZDu6jolCaIvdlbXgOhX
+HV9qQbS0guKH5UCa9WfaJxC9kTtfZiWQrtF9KweiZySxXV0FpM+bLb8BopPu
+Tn0AolNiZ4LpLxyO30C0znfNHyBao/Iqx2ogrVUXzAWiAYxwojA=
+  "]],
+
+Cell[BoxData[
+ RowBox[{"w0", ":=", 
+  RowBox[{"1", "/", 
+   RowBox[{"Sqrt", "[", 
+    RowBox[{"R1", "*", "R2", "*", "C1", "*", "C2"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.6441418345558405`*^9, 3.6441418705953655`*^9}, 
+   3.6441428478598194`*^9}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"alpha", ":=", 
+   RowBox[{"0.5", "*", 
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"1", "/", "R1"}], "+", 
+       RowBox[{"1", "/", "R2"}]}], ")"}], "/", "C1"}]}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.6441419407048283`*^9, 3.64414199457469*^9}, 
+   3.644142027696723*^9}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{"\"\<(w0)\>\"", "w0"}], "\[IndentingNewLine]", 
+ RowBox[{"\"\<(Q)\>\"", 
+  RowBox[{"w0", "/", 
+   RowBox[{"(", 
+    RowBox[{"2", "*", "alpha"}], ")"}]}]}]}], "Input",
+ CellChangeTimes->{{3.644142714055107*^9, 3.6441427197270937`*^9}, {
+  3.644142860525756*^9, 3.6441429183320093`*^9}, {3.6441474443175573`*^9, 
+  3.644147482645073*^9}}],
+
+Cell[BoxData[
+ RowBox[{"500000", " ", 
+  SqrtBox[
+   FractionBox["10", "33"]], " ", "\<\"(w0)\"\>"}]], "Output",
+ CellChangeTimes->{{3.644142875326873*^9, 3.644142885076974*^9}, 
+   3.6441429193007665`*^9, {3.644143353565414*^9, 3.64414337404305*^9}, 
+   3.644145300638747*^9, {3.6441474475675917`*^9, 3.6441474830668936`*^9}, 
+   3.644147965141738*^9, 3.6441515178681936`*^9}],
+
+Cell[BoxData[
+ RowBox[{"4.128614119223852`", " ", "\<\"(Q)\"\>"}]], "Output",
+ CellChangeTimes->{{3.644142875326873*^9, 3.644142885076974*^9}, 
+   3.6441429193007665`*^9, {3.644143353565414*^9, 3.64414337404305*^9}, 
+   3.644145300638747*^9, {3.6441474475675917`*^9, 3.6441474830668936`*^9}, 
+   3.644147965141738*^9, 3.6441515178681936`*^9}]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"H", "[", "w_", "]"}], ":=", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{"1", "/", 
+       RowBox[{"Sqrt", "[", 
+        RowBox[{"R1", "*", "R2", "*", "C1", "*", "C2"}], "]"}]}], ")"}], "^", 
+     "2"}], "/", "\[IndentingNewLine]", 
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{"-", 
+       RowBox[{"w", "^", "2"}]}], "+", 
+      RowBox[{"2", "*", "I", "*", "w", "*", 
+       RowBox[{"(", 
+        RowBox[{"0.5", "*", 
+         RowBox[{
+          RowBox[{"(", 
+           RowBox[{
+            RowBox[{"1", "/", "R1"}], "+", 
+            RowBox[{"1", "/", "R2"}]}], ")"}], "/", "C1"}]}], ")"}]}], "+", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{"1", "/", 
+         RowBox[{"Sqrt", "[", 
+          RowBox[{"R1", "*", "R2", "*", "C1", "*", "C2"}], "]"}]}], ")"}], 
+       "^", "2"}]}], ")"}]}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.643798105418848*^9, 3.643798155716629*^9}, {
+   3.6437982744104185`*^9, 3.6437983157003613`*^9}, {3.6437983776911106`*^9, 
+   3.643798441484831*^9}, {3.6438000131137266`*^9, 3.643800084176253*^9}, {
+   3.643800200602475*^9, 3.643800232686472*^9}, {3.643800284093851*^9, 
+   3.643800286596678*^9}, 3.6438003314988213`*^9, 3.644141792100401*^9, {
+   3.64414188170879*^9, 3.6441419372458353`*^9}, {3.644142128356618*^9, 
+   3.6441421512712183`*^9}, 3.6441515064335833`*^9}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{"\"\<R1\>\"", 
+  RowBox[{"Slider", "[", 
+   RowBox[{
+    RowBox[{"Dynamic", "[", "R1", "]"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"1000", ",", "2500"}], "}"}], ",", 
+    RowBox[{"Appearance", "\[Rule]", "\"\<Labeled\>\""}], ",", 
+    RowBox[{"ContinuousAction", "\[Rule]", 
+     RowBox[{"Dynamic", "[", "actualisationDynamique", "]"}]}]}], 
+   "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{"\"\<R2\>\"", 
+  RowBox[{"Slider", "[", 
+   RowBox[{
+    RowBox[{"Dynamic", "[", "R2", "]"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"1000", ",", "2500"}], "}"}], ",", 
+    RowBox[{"Appearance", "\[Rule]", "\"\<Labeled\>\""}], ",", 
+    RowBox[{"ContinuousAction", "\[Rule]", 
+     RowBox[{"Dynamic", "[", "actualisationDynamique", "]"}]}]}], 
+   "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{"\"\<C1\>\"", 
+  RowBox[{"Slider", "[", 
+   RowBox[{
+    RowBox[{"Dynamic", "[", "C1", "]"}], ",", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"1", "*", 
+       RowBox[{"10", "^", 
+        RowBox[{"-", "8"}]}]}], ",", 
+      RowBox[{"1", "*", 
+       RowBox[{"10", "^", 
+        RowBox[{"-", "7"}]}]}]}], "}"}], ",", 
+    RowBox[{"Appearance", "\[Rule]", "\"\<Labeled\>\""}], ",", 
+    RowBox[{"ContinuousAction", "\[Rule]", 
+     RowBox[{"Dynamic", "[", "actualisationDynamique", "]"}]}]}], 
+   "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{"\"\<C2\>\"", 
+  RowBox[{"Slider", "[", 
+   RowBox[{
+    RowBox[{"Dynamic", "[", "C2", "]"}], ",", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"1", "*", 
+       RowBox[{"10", "^", 
+        RowBox[{"-", "10"}]}]}], ",", 
+      RowBox[{"1", "*", 
+       RowBox[{"10", "^", 
+        RowBox[{"-", "9"}]}]}]}], "}"}], ",", 
+    RowBox[{"Appearance", "\[Rule]", "\"\<Labeled\>\""}], ",", 
+    RowBox[{"ContinuousAction", "\[Rule]", 
+     RowBox[{"Dynamic", "[", "actualisationDynamique", "]"}]}]}], 
+   "]"}]}]}], "Input",
+ CellChangeTimes->{{3.6438005366365747`*^9, 3.6438005604306345`*^9}, {
+   3.6438008192373767`*^9, 3.6438008472962675`*^9}, {3.6438010863406286`*^9, 
+   3.643801088532996*^9}, 3.643801131419679*^9, {3.643801328209899*^9, 
+   3.643801335895578*^9}, {3.643801395452857*^9, 3.6438014009469852`*^9}, {
+   3.643801451531643*^9, 3.643801464999876*^9}, {3.6438015139133224`*^9, 
+   3.643801535555996*^9}, {3.6438017142735825`*^9, 3.643801715335893*^9}, {
+   3.643801811119939*^9, 3.643801921794199*^9}, {3.6438019862928505`*^9, 
+   3.64380200099309*^9}, {3.6438020378163457`*^9, 3.643802072219902*^9}, {
+   3.6438041269036694`*^9, 3.6438041328096333`*^9}, {3.643804327583905*^9, 
+   3.6438043576853495`*^9}, {3.6438044760344048`*^9, 3.643804494755582*^9}, {
+   3.6438047288469276`*^9, 3.6438047296036434`*^9}, {3.644038982657831*^9, 
+   3.6440390393129683`*^9}, {3.6440395193835382`*^9, 
+   3.6440395261760225`*^9}, {3.6440403831767035`*^9, 3.644040403879738*^9}, {
+   3.644040598843131*^9, 3.644040611443201*^9}, {3.6440406654657984`*^9, 
+   3.6440406895473037`*^9}, {3.644141893720082*^9, 3.644141894845091*^9}, {
+   3.6441420349079356`*^9, 3.6441420665548887`*^9}, {3.6441424898124447`*^9, 
+   3.644142545947979*^9}, {3.644142647001358*^9, 3.6441426495638847`*^9}, {
+   3.644143289778371*^9, 3.6441432981415377`*^9}, {3.644147387490879*^9, 
+   3.6441474135053053`*^9}, {3.64414755775128*^9, 3.6441475851107316`*^9}, {
+   3.6441476361846437`*^9, 3.644147670119943*^9}, {3.6441478888322134`*^9, 
+   3.6441479027731905`*^9}, {3.6441480772377057`*^9, 3.644148077597083*^9}, {
+   3.6441515082148485`*^9, 3.6441515100400286`*^9}, {3.644151857948398*^9, 
+   3.6441518612198915`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"\<\"R1\"\>", " ", 
+  InterpretationBox[
+   StyleBox[GridBox[{
+      {
+       SliderBox[Dynamic[$CellContext`R1], {1000, 2500},
+        Appearance->Automatic,
+        ContinuousAction->Dynamic[$CellContext`actualisationDynamique],
+        DefaultBaseStyle->"LabeledSlider"], 
+       InputFieldBox[Dynamic[$CellContext`R1],
+        Appearance->"Frameless",
+        ContinuousAction->Dynamic[$CellContext`actualisationDynamique],
+        DefaultBaseStyle->"LabeledSlider",
+        FieldSize->{{5, 10}, {1, 2}},
+        ImageMargins->0]}
+     },
+     AutoDelete->False,
+     BaselinePosition->{{1, 1}, Axis},
+     GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}},
+     GridBoxSpacings->{"Columns" -> {
+         Offset[0.27999999999999997`], {
+          Offset[0.7]}, 
+         Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+         Offset[0.2], {
+          Offset[0.4]}, 
+         Offset[0.2]}, "RowsIndexed" -> {}}],
+    Deployed->True,
+    StripOnInput->False,
+    FontFamily:>CurrentValue["ControlsFontFamily"]],
+   LabeledSlider[
+    Dynamic[$CellContext`R1], {1000, 2500}, ContinuousAction -> 
+    Dynamic[$CellContext`actualisationDynamique]]]}]], "Output",
+ CellChangeTimes->{
+  3.643802702078395*^9, 3.6438041332002077`*^9, 3.6438043585135674`*^9, 
+   3.6438044957822866`*^9, 3.643804731150521*^9, 3.644038840477539*^9, 
+   3.644039039594221*^9, {3.6440390702519975`*^9, 3.644039072169448*^9}, 
+   3.644039527387373*^9, 3.644040407504724*^9, 3.6440406124744062`*^9, 
+   3.644040690641015*^9, {3.644059462513937*^9, 3.6440594822996426`*^9}, {
+   3.644075206017166*^9, 3.64407521829758*^9}, 3.644142071347081*^9, 
+   3.6441421596310983`*^9, 3.644142547651086*^9, 3.6441426500794816`*^9, {
+   3.644143290950203*^9, 3.644143298719629*^9}, {3.6441476471865535`*^9, 
+   3.644147671307416*^9}, {3.6441478921636887`*^9, 3.644147903788845*^9}, 
+   3.6441479734073944`*^9, 3.6441480778314266`*^9, 3.6441515222867804`*^9, 
+   3.644151861469899*^9}],
+
+Cell[BoxData[
+ RowBox[{"\<\"R2\"\>", " ", 
+  InterpretationBox[
+   StyleBox[GridBox[{
+      {
+       SliderBox[Dynamic[$CellContext`R2], {1000, 2500},
+        Appearance->Automatic,
+        ContinuousAction->Dynamic[$CellContext`actualisationDynamique],
+        DefaultBaseStyle->"LabeledSlider"], 
+       InputFieldBox[Dynamic[$CellContext`R2],
+        Appearance->"Frameless",
+        ContinuousAction->Dynamic[$CellContext`actualisationDynamique],
+        DefaultBaseStyle->"LabeledSlider",
+        FieldSize->{{5, 10}, {1, 2}},
+        ImageMargins->0]}
+     },
+     AutoDelete->False,
+     BaselinePosition->{{1, 1}, Axis},
+     GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}},
+     GridBoxSpacings->{"Columns" -> {
+         Offset[0.27999999999999997`], {
+          Offset[0.7]}, 
+         Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+         Offset[0.2], {
+          Offset[0.4]}, 
+         Offset[0.2]}, "RowsIndexed" -> {}}],
+    Deployed->True,
+    StripOnInput->False,
+    FontFamily:>CurrentValue["ControlsFontFamily"]],
+   LabeledSlider[
+    Dynamic[$CellContext`R2], {1000, 2500}, ContinuousAction -> 
+    Dynamic[$CellContext`actualisationDynamique]]]}]], "Output",
+ CellChangeTimes->{
+  3.643802702078395*^9, 3.6438041332002077`*^9, 3.6438043585135674`*^9, 
+   3.6438044957822866`*^9, 3.643804731150521*^9, 3.644038840477539*^9, 
+   3.644039039594221*^9, {3.6440390702519975`*^9, 3.644039072169448*^9}, 
+   3.644039527387373*^9, 3.644040407504724*^9, 3.6440406124744062`*^9, 
+   3.644040690641015*^9, {3.644059462513937*^9, 3.6440594822996426`*^9}, {
+   3.644075206017166*^9, 3.64407521829758*^9}, 3.644142071347081*^9, 
+   3.6441421596310983`*^9, 3.644142547651086*^9, 3.6441426500794816`*^9, {
+   3.644143290950203*^9, 3.644143298719629*^9}, {3.6441476471865535`*^9, 
+   3.644147671307416*^9}, {3.6441478921636887`*^9, 3.644147903788845*^9}, 
+   3.6441479734073944`*^9, 3.6441480778314266`*^9, 3.6441515222867804`*^9, 
+   3.644151861469899*^9}],
+
+Cell[BoxData[
+ RowBox[{"\<\"C1\"\>", " ", 
+  InterpretationBox[
+   StyleBox[GridBox[{
+      {
+       SliderBox[Dynamic[
+         BoxForm`RemapVariable[$CellContext`C1, {
+           Rational[1, 100000000], 
+           Rational[1, 10000000]}], BoxForm`RemapValue[#, $CellContext`C1, {
+           Rational[1, 100000000], 
+           Rational[1, 10000000]}]& ], {0, 1},
+        Appearance->Automatic,
+        ContinuousAction->Dynamic[$CellContext`actualisationDynamique],
+        DefaultBaseStyle->"LabeledSlider"], 
+       InputFieldBox[Dynamic[$CellContext`C1],
+        Appearance->"Frameless",
+        ContinuousAction->Dynamic[$CellContext`actualisationDynamique],
+        DefaultBaseStyle->"LabeledSlider",
+        FieldSize->{{5, 10}, {1, 2}},
+        ImageMargins->0]}
+     },
+     AutoDelete->False,
+     BaselinePosition->{{1, 1}, Axis},
+     GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}},
+     GridBoxSpacings->{"Columns" -> {
+         Offset[0.27999999999999997`], {
+          Offset[0.7]}, 
+         Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+         Offset[0.2], {
+          Offset[0.4]}, 
+         Offset[0.2]}, "RowsIndexed" -> {}}],
+    Deployed->True,
+    StripOnInput->False,
+    FontFamily:>CurrentValue["ControlsFontFamily"]],
+   LabeledSlider[
+    Dynamic[
+     BoxForm`RemapVariable[$CellContext`C1, {
+       Rational[1, 100000000], 
+       Rational[1, 10000000]}], BoxForm`RemapValue[#, $CellContext`C1, {
+       Rational[1, 100000000], 
+       Rational[1, 10000000]}]& ], {0, 1}, ContinuousAction -> 
+    Dynamic[$CellContext`actualisationDynamique]]]}]], "Output",
+ CellChangeTimes->{
+  3.643802702078395*^9, 3.6438041332002077`*^9, 3.6438043585135674`*^9, 
+   3.6438044957822866`*^9, 3.643804731150521*^9, 3.644038840477539*^9, 
+   3.644039039594221*^9, {3.6440390702519975`*^9, 3.644039072169448*^9}, 
+   3.644039527387373*^9, 3.644040407504724*^9, 3.6440406124744062`*^9, 
+   3.644040690641015*^9, {3.644059462513937*^9, 3.6440594822996426`*^9}, {
+   3.644075206017166*^9, 3.64407521829758*^9}, 3.644142071347081*^9, 
+   3.6441421596310983`*^9, 3.644142547651086*^9, 3.6441426500794816`*^9, {
+   3.644143290950203*^9, 3.644143298719629*^9}, {3.6441476471865535`*^9, 
+   3.644147671307416*^9}, {3.6441478921636887`*^9, 3.644147903788845*^9}, 
+   3.6441479734073944`*^9, 3.6441480778314266`*^9, 3.6441515222867804`*^9, 
+   3.644151861469899*^9}],
+
+Cell[BoxData[
+ RowBox[{"\<\"C2\"\>", " ", 
+  InterpretationBox[
+   StyleBox[GridBox[{
+      {
+       SliderBox[Dynamic[
+         BoxForm`RemapVariable[$CellContext`C2, {
+           Rational[1, 10000000000], 
+           Rational[1, 1000000000]}], BoxForm`RemapValue[#, $CellContext`C2, {
+           Rational[1, 10000000000], 
+           Rational[1, 1000000000]}]& ], {0, 1},
+        Appearance->Automatic,
+        ContinuousAction->Dynamic[$CellContext`actualisationDynamique],
+        DefaultBaseStyle->"LabeledSlider"], 
+       InputFieldBox[Dynamic[$CellContext`C2],
+        Appearance->"Frameless",
+        ContinuousAction->Dynamic[$CellContext`actualisationDynamique],
+        DefaultBaseStyle->"LabeledSlider",
+        FieldSize->{{5, 10}, {1, 2}},
+        ImageMargins->0]}
+     },
+     AutoDelete->False,
+     BaselinePosition->{{1, 1}, Axis},
+     GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}},
+     GridBoxSpacings->{"Columns" -> {
+         Offset[0.27999999999999997`], {
+          Offset[0.7]}, 
+         Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+         Offset[0.2], {
+          Offset[0.4]}, 
+         Offset[0.2]}, "RowsIndexed" -> {}}],
+    Deployed->True,
+    StripOnInput->False,
+    FontFamily:>CurrentValue["ControlsFontFamily"]],
+   LabeledSlider[
+    Dynamic[
+     BoxForm`RemapVariable[$CellContext`C2, {
+       Rational[1, 10000000000], 
+       Rational[1, 1000000000]}], BoxForm`RemapValue[#, $CellContext`C2, {
+       Rational[1, 10000000000], 
+       Rational[1, 1000000000]}]& ], {0, 1}, ContinuousAction -> 
+    Dynamic[$CellContext`actualisationDynamique]]]}]], "Output",
+ CellChangeTimes->{
+  3.643802702078395*^9, 3.6438041332002077`*^9, 3.6438043585135674`*^9, 
+   3.6438044957822866`*^9, 3.643804731150521*^9, 3.644038840477539*^9, 
+   3.644039039594221*^9, {3.6440390702519975`*^9, 3.644039072169448*^9}, 
+   3.644039527387373*^9, 3.644040407504724*^9, 3.6440406124744062`*^9, 
+   3.644040690641015*^9, {3.644059462513937*^9, 3.6440594822996426`*^9}, {
+   3.644075206017166*^9, 3.64407521829758*^9}, 3.644142071347081*^9, 
+   3.6441421596310983`*^9, 3.644142547651086*^9, 3.6441426500794816`*^9, {
+   3.644143290950203*^9, 3.644143298719629*^9}, {3.6441476471865535`*^9, 
+   3.644147671307416*^9}, {3.6441478921636887`*^9, 3.644147903788845*^9}, 
+   3.6441479734073944`*^9, 3.6441480778314266`*^9, 3.6441515222867804`*^9, 
+   3.644151861469899*^9}]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"actualisationDynamique", " ", "=", " ", "True"}], ";"}]], "Input",
+ CellChangeTimes->{{3.643802084646183*^9, 3.643802103830025*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Dynamic", "[", 
+  RowBox[{"LogLogPlot", "[", 
+   RowBox[{
+    RowBox[{"Abs", "[", 
+     RowBox[{"H", "[", 
+      RowBox[{"2", "*", "Pi", "*", "f"}], "]"}], "]"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"f", ",", 
+      RowBox[{"10", "^", "4"}], ",", 
+      RowBox[{"10", "^", "6"}]}], "}"}], ",", 
+    RowBox[{"AxesOrigin", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{"40000", ",", "1"}], "}"}]}]}], "]"}], "]"}]], "Input",
+ CellChangeTimes->{
+  3.6438002477527623`*^9, 3.643800333832456*^9, {3.643800739137664*^9, 
+   3.643800747332409*^9}, 3.6438030402582493`*^9, {3.6438030723996267`*^9, 
+   3.6438030948588676`*^9}, {3.6438031293572345`*^9, 
+   3.6438031558981934`*^9}, {3.6438031899985237`*^9, 
+   3.6438032399526615`*^9}, {3.643804142261588*^9, 3.643804149925674*^9}, {
+   3.6440388039236183`*^9, 3.6440388174893923`*^9}, {3.6440388574236145`*^9, 
+   3.6440389050853834`*^9}, {3.6441429489573345`*^9, 3.644142980678837*^9}, {
+   3.644143174815049*^9, 3.644143175236929*^9}, {3.6441472830246363`*^9, 
+   3.6441472951028876`*^9}, {3.6441557260790553`*^9, 3.644155741946365*^9}}],
+
+Cell[BoxData[
+ DynamicBox[ToBoxes[
+   LogLogPlot[
+    Abs[
+     $CellContext`H[2 Pi $CellContext`f]], {$CellContext`f, 10^4, 10^6}, 
+    AxesOrigin -> {40000, 1}], StandardForm],
+  ImageSizeCache->{1134., {347., 356.}}]], "Output",
+ CellChangeTimes->{
+  3.644059485291814*^9, {3.6440752100787287`*^9, 3.6440752197663436`*^9}, 
+   3.644142081050268*^9, {3.6441429502854156`*^9, 3.6441429816163454`*^9}, 
+   3.6441431758462715`*^9, {3.644147291352791*^9, 3.6441472953840833`*^9}, 
+   3.644147975801386*^9, {3.644155730204042*^9, 3.6441557428681927`*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Re", "[", 
+  RowBox[{"f", "/.", 
+   RowBox[{"Solve", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"Abs", "[", 
+       RowBox[{"H", "[", 
+        RowBox[{"2", "*", "Pi", "*", "f"}], "]"}], "]"}], "\[Equal]", "1"}], 
+     ",", "f"}], "]"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.6438023043734083`*^9, 3.6438025469003077`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  StyleBox[
+   RowBox[{"Solve", "::", "ifun"}], "MessageName"], 
+  RowBox[{
+  ":", " "}], "\<\"Inverse functions are being used by \
+\[NoBreak]\\!\\(Solve\\)\[NoBreak], so some solutions may not be found; use \
+Reduce for complete solution information. \\!\\(\\*ButtonBox[\\\"\
+\[RightSkeleton]\\\", ButtonStyle->\\\"Link\\\", ButtonFrame->None, \
+ButtonData:>\\\"paclet:ref/message/Solve/ifun\\\", ButtonNote -> \
+\\\"Solve::ifun\\\"]\\)\"\>"}]], "Message", "MSG",
+ CellChangeTimes->{3.644151608747731*^9, 3.6441517602277956`*^9}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"-", "57647.77699254501`"}], ",", 
+   RowBox[{"-", "1.0913936421275139`*^-11"}], ",", "0.`", ",", 
+   "57647.77699254503`"}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.644142751168068*^9, {3.64414527468329*^9, 3.6441452811264925`*^9}, 
+   3.644147929636168*^9, 3.644147980683796*^9, 3.644151608763339*^9, 
+   3.6441517602277956`*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"FindMaximum", "[", 
+  RowBox[{
+   RowBox[{"Abs", "[", 
+    RowBox[{"H", "[", 
+     RowBox[{"2", "*", "Pi", "*", "f"}], "]"}], "]"}], ",", "f"}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.643802834685227*^9, 3.6438028595595665`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  StyleBox[
+   RowBox[{"FindMaximum", "::", "fmgz"}], "MessageName"], 
+  RowBox[{
+  ":", " "}], "\<\"Encountered a gradient that is effectively zero. The \
+result returned may not be a maximum; it may be a minimum or a saddle point. \
+\\!\\(\\*ButtonBox[\\\"\[RightSkeleton]\\\", ButtonStyle->\\\"Link\\\", \
+ButtonFrame->None, ButtonData:>\\\"paclet:ref/message/FindMaximum/fmgz\\\", \
+ButtonNote -> \\\"FindMaximum::fmgz\\\"]\\)\"\>"}]], "Message", "MSG",
+ CellChangeTimes->{3.6441426126066885`*^9, 3.6441427562102222`*^9, 
+  3.644142940019686*^9, 3.64414338532436*^9, 3.6441452830970507`*^9, 
+  3.644147987192946*^9, 3.6441513908195543`*^9, 3.644151583282786*^9, 
+  3.644151756727745*^9}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"1.0000000005986192`", ",", 
+   RowBox[{"{", 
+    RowBox[{"f", "\[Rule]", "1.`"}], "}"}]}], "}"}]], "Output",
+ CellChangeTimes->{{3.6438028605350313`*^9, 3.6438028799718575`*^9}, 
+   3.6438029425494995`*^9, 3.644039197710702*^9, 3.6440396324330397`*^9, 
+   3.644039759079322*^9, 3.6440399705278*^9, {3.644040153209817*^9, 
+   3.6440401819200225`*^9}, 3.644059494104786*^9, 3.6440752226101084`*^9, {
+   3.644075269972971*^9, 3.6440752732855453`*^9}, 3.6440753253582344`*^9, 
+   3.644076608257871*^9, 3.6441426126066885`*^9, 3.6441427562102222`*^9, 
+   3.6441429400353107`*^9, 3.64414338532436*^9, 3.6441452830970507`*^9, 
+   3.644147987192946*^9, 3.6441513908195543`*^9, 3.644151583282786*^9, 
+   3.644151756727745*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"Dynamic", "[", 
+    RowBox[{"Abs", "[", 
+     RowBox[{"H", "[", 
+      RowBox[{"2", "*", "Pi", "*", "38000"}], "]"}], "]"}], "]"}], ",", 
+   RowBox[{"Dynamic", "[", 
+    RowBox[{"Abs", "[", 
+     RowBox[{"H", "[", 
+      RowBox[{"2", "*", "Pi", "*", "40000"}], "]"}], "]"}], "]"}], ",", 
+   RowBox[{"Dynamic", "[", 
+    RowBox[{"Abs", "[", 
+     RowBox[{"H", "[", 
+      RowBox[{"2", "*", "Pi", "*", "42000"}], "]"}], "]"}], "]"}]}], 
+  "}"}]], "Input",
+ CellChangeTimes->{{3.643802887208412*^9, 3.643802897408921*^9}, {
+  3.643803643017639*^9, 3.643803692163827*^9}, {3.6438069950173397`*^9, 
+  3.643807004861306*^9}, {3.644039186792905*^9, 3.644039188152294*^9}, {
+  3.644039230217811*^9, 3.6440392303271747`*^9}, {3.6440392687199187`*^9, 
+  3.644039285634838*^9}, {3.644039864276078*^9, 3.6440398684323697`*^9}, {
+  3.6440400141524887`*^9, 3.6440400412766237`*^9}, {3.6441434046684256`*^9, 
+  3.644143415856041*^9}, {3.644148018005024*^9, 3.644148025536352*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   DynamicBox[ToBoxes[
+     Abs[
+      $CellContext`H[2 Pi 38000]], StandardForm],
+    ImageSizeCache->{84., {0., 13.}}], ",", 
+   DynamicBox[ToBoxes[
+     Abs[
+      $CellContext`H[2 Pi 40000]], StandardForm],
+    ImageSizeCache->{84., {0., 13.}}], ",", 
+   DynamicBox[ToBoxes[
+     Abs[
+      $CellContext`H[2 Pi 42000]], StandardForm],
+    ImageSizeCache->{84., {0., 13.}}]}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.6440753344618063`*^9, {3.6441433906525393`*^9, 3.6441434167153854`*^9}, 
+   3.6441479920836773`*^9, 3.6441480267550726`*^9}]
+}, Open  ]]
+},
+WindowSize->{942, 985},
+WindowMargins->{{0, Automatic}, {0, Automatic}},
+Magnification:>FEPrivate`If[
+  FEPrivate`Equal[FEPrivate`$VersionNumber, 6.], 1.5, 1.5 Inherited],
+FrontEndVersion->"9.0 for Microsoft Windows (64-bit) (November 20, 2012)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[557, 20, 830, 22, 133, "Input"],
+Cell[1390, 44, 253, 6, 45, "Input"],
+Cell[1646, 52, 328, 10, 45, "Input"],
+Cell[CellGroupData[{
+Cell[1999, 66, 360, 8, 75, "Input"],
+Cell[2362, 76, 377, 7, 84, "Output"],
+Cell[2742, 85, 342, 5, 44, "Output"]
+}, Open  ]],
+Cell[3099, 93, 1375, 35, 104, "Input"],
+Cell[CellGroupData[{
+Cell[4499, 132, 3530, 75, 307, "Input"],
+Cell[8032, 209, 2008, 43, 68, "Output"],
+Cell[10043, 254, 2008, 43, 68, "Output"],
+Cell[12054, 299, 2418, 53, 68, "Output"],
+Cell[14475, 354, 2434, 53, 68, "Output"]
+}, Open  ]],
+Cell[16924, 410, 167, 3, 45, "Input"],
+Cell[CellGroupData[{
+Cell[17116, 417, 1105, 23, 75, "Input"],
+Cell[18224, 442, 552, 11, 725, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[18813, 458, 353, 10, 45, "Input"],
+Cell[19169, 470, 555, 11, 65, "Message"],
+Cell[19727, 483, 384, 9, 50, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[20148, 497, 256, 7, 45, "Input"],
+Cell[20407, 506, 715, 13, 94, "Message"],
+Cell[21125, 521, 757, 13, 44, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[21919, 539, 1017, 22, 75, "Input"],
+Cell[22939, 563, 586, 17, 44, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)

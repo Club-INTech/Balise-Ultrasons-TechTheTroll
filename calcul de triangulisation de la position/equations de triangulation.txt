@@ -1,0 +1,10 @@
+dA = sqrt((L/2-x)^2+(l/2-y)^2)
+dB = sqrt((-L/2-x)^2+(l-y)^2)
+dC = sqrt((-L/2-x)^2+y^2)
+
+dA - dB = A
+dA - dC = B
+dB - dC = C
+
+sqrt((L/2-x)^2+(l/2-y)^2) - sqrt((-L/2-x)^2+y^2) = B
+sqrt((-L/2-x)^2+(l-y)^2) -  sqrt((-L/2-x)^2+y^2) = C
