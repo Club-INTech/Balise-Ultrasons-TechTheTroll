@@ -1,7 +1,0 @@
-#Fichiers de récupération Eagle
-*.b#*
-*.s#*
-
-#Fichiers de Visual Studio
-*.sdf
-*.suo
