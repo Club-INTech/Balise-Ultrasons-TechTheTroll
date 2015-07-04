@@ -5,3 +5,6 @@
 #Fichiers de Visual Studio
 *.sdf
 *.suo
+
+#Fichiers de sauvegarde SketchUp
+*.skb
