@@ -10218,7 +10218,6 @@ Siemens</description>
 <text x="0.635" y="-4.445" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
 <rectangle x1="2.921" y1="1.016" x2="6.731" y2="1.524" layer="21"/>
 <rectangle x1="2.921" y1="-1.524" x2="6.731" y2="-1.016" layer="21"/>
-<hole x="0" y="0" drill="0.8128"/>
 </package>
 <package name="Q62902-B156">
 <description>&lt;b&gt;LED HOLDER&lt;/b&gt;&lt;p&gt;
@@ -13608,7 +13607,7 @@ Distributor Buerklin, 11G810</description>
 <part name="R6" library="resistor" deviceset="R-EU_" device="0207/2V" value="18K"/>
 <part name="C3" library="resistor" deviceset="C-EU" device="075-032X103" value="220p"/>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
-<part name="R7" library="resistor" deviceset="R-EU_" device="0207/2V" value="18K"/>
+<part name="R7" library="resistor" deviceset="R-EU_" device="0207/2V" value="8K2"/>
 <part name="R8" library="resistor" deviceset="R-EU_" device="0207/2V" value="10K"/>
 <part name="R9" library="resistor" deviceset="R-EU_" device="0207/2V" value="18K"/>
 <part name="R10" library="resistor" deviceset="R-EU_" device="0207/2V" value="3K9"/>
@@ -13697,13 +13696,21 @@ Distributor Buerklin, 11G810</description>
 <part name="JP2" library="jumper" deviceset="JP1E" device=""/>
 <part name="SUPPLY17" library="supply2" deviceset="0V" device=""/>
 <part name="GND18" library="supply1" deviceset="GND" device=""/>
+<part name="R27" library="resistor" deviceset="R-TRIMM" device="3339P" value="10K"/>
+<part name="R28" library="resistor" deviceset="R-TRIMM" device="3339P" value="2K"/>
 </parts>
 <sheets>
 <sheet>
 <plain>
-<text x="-2.54" y="12.7" size="1.778" layer="97">40Hz:
-R1=R2= 18K
-C1=C2= 220n</text>
+<text x="-10.16" y="-2.54" size="1.778" layer="97">40Hz:
+R1= 8K2
+R2= 18K
+C1=C2= 220n
+
+80Hz:
+R1= 4K7
+R2= 5K6
+C1=C2= 330n</text>
 </plain>
 <instances>
 <instance part="D3" gate="G$1" x="60.96" y="30.48" rot="R180"/>
@@ -13803,6 +13810,8 @@ C1=C2= 220n</text>
 <instance part="JP2" gate="A" x="121.92" y="76.2"/>
 <instance part="SUPPLY17" gate="0V" x="121.92" y="71.12"/>
 <instance part="GND18" gate="1" x="124.46" y="71.12"/>
+<instance part="R27" gate="G$1" x="17.78" y="58.42"/>
+<instance part="R28" gate="G$1" x="17.78" y="17.78"/>
 </instances>
 <busses>
 </busses>
@@ -13868,28 +13877,24 @@ C1=C2= 220n</text>
 <pinref part="R8" gate="G$1" pin="1"/>
 <pinref part="GND3" gate="1" pin="GND"/>
 <wire x1="22.86" y1="40.64" x2="17.78" y2="40.64" width="0.1524" layer="91"/>
-<pinref part="R7" gate="G$1" pin="1"/>
 <wire x1="17.78" y1="40.64" x2="17.78" y2="38.1" width="0.1524" layer="91"/>
-<wire x1="22.86" y1="58.42" x2="17.78" y2="58.42" width="0.1524" layer="91"/>
-<wire x1="17.78" y1="58.42" x2="17.78" y2="53.34" width="0.1524" layer="91"/>
 <junction x="17.78" y="40.64"/>
 <pinref part="C4" gate="G$1" pin="2"/>
 <wire x1="17.78" y1="53.34" x2="17.78" y2="40.64" width="0.1524" layer="91"/>
 <wire x1="25.4" y1="53.34" x2="17.78" y2="53.34" width="0.1524" layer="91"/>
+<pinref part="R27" gate="G$1" pin="E"/>
 <junction x="17.78" y="53.34"/>
 </segment>
 <segment>
 <pinref part="R3" gate="G$1" pin="1"/>
 <pinref part="GND1" gate="1" pin="GND"/>
 <wire x1="22.86" y1="0" x2="17.78" y2="0" width="0.1524" layer="91"/>
-<pinref part="R2" gate="G$1" pin="1"/>
 <wire x1="17.78" y1="0" x2="17.78" y2="-2.54" width="0.1524" layer="91"/>
-<wire x1="22.86" y1="17.78" x2="17.78" y2="17.78" width="0.1524" layer="91"/>
-<wire x1="17.78" y1="17.78" x2="17.78" y2="12.7" width="0.1524" layer="91"/>
 <junction x="17.78" y="0"/>
 <pinref part="C2" gate="G$1" pin="2"/>
 <wire x1="17.78" y1="12.7" x2="17.78" y2="0" width="0.1524" layer="91"/>
 <wire x1="25.4" y1="12.7" x2="17.78" y2="12.7" width="0.1524" layer="91"/>
+<pinref part="R28" gate="G$1" pin="E"/>
 <junction x="17.78" y="12.7"/>
 </segment>
 <segment>
@@ -14487,6 +14492,18 @@ C1=C2= 220n</text>
 <wire x1="193.04" y1="48.26" x2="218.44" y2="48.26" width="0.1524" layer="91"/>
 <wire x1="218.44" y1="48.26" x2="218.44" y2="53.34" width="0.1524" layer="91"/>
 <junction x="193.04" y="48.26"/>
+</segment>
+</net>
+<net name="N$26" class="0">
+<segment>
+<pinref part="R7" gate="G$1" pin="1"/>
+<pinref part="R27" gate="G$1" pin="S"/>
+</segment>
+</net>
+<net name="N$27" class="0">
+<segment>
+<pinref part="R2" gate="G$1" pin="1"/>
+<pinref part="R28" gate="G$1" pin="S"/>
 </segment>
 </net>
 </nets>

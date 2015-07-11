@@ -1,3 +1,5 @@
+#include <XBee\XBee.h>
+
 volatile unsigned long before;
 volatile unsigned long now;
 volatile bool updated;
