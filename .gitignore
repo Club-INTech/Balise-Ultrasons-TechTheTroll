@@ -8,3 +8,6 @@
 
 #Fichiers de sauvegarde SketchUp
 *.skb
+
+#Images (souvent trop lourdes)
+*.png
