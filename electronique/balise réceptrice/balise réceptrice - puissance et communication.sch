@@ -13860,6 +13860,71 @@ Source: www.kingbright.com</description>
 </deviceset>
 </devicesets>
 </library>
+<library name="switch">
+<description>&lt;b&gt;Switches&lt;/b&gt;&lt;p&gt;
+Marquardt, Siemens, C&amp;K, ITT, and others&lt;p&gt;
+&lt;author&gt;Created by librarian@cadsoft.de&lt;/author&gt;</description>
+<packages>
+<package name="1RT">
+<pad name="2" x="0" y="0" drill="0.8" shape="long" rot="R90"/>
+<pad name="3" x="2" y="0" drill="0.8" shape="long" rot="R90"/>
+<pad name="1" x="-2" y="0" drill="0.8" shape="long" rot="R90"/>
+<hole x="4.1" y="0" drill="1.5"/>
+<hole x="-4.1" y="0" drill="1.5"/>
+<wire x1="4.3" y1="2.2" x2="-4.3" y2="2.2" width="0.127" layer="21"/>
+<wire x1="-4.3" y1="2.2" x2="-4.3" y2="-2.2" width="0.127" layer="21"/>
+<wire x1="-4.3" y1="-2.2" x2="0" y2="-2.2" width="0.127" layer="21"/>
+<wire x1="2" y1="-2.2" x2="4.3" y2="-2.2" width="0.127" layer="21"/>
+<wire x1="4.3" y1="-2.2" x2="4.3" y2="2.2" width="0.127" layer="21"/>
+<wire x1="2" y1="-2.2" x2="0" y2="-2.2" width="0.127" layer="21"/>
+<wire x1="0" y1="-2.2" x2="0" y2="-6.3" width="0.127" layer="21"/>
+<wire x1="0" y1="-6.3" x2="2" y2="-6.3" width="0.127" layer="21"/>
+<wire x1="2" y1="-6.3" x2="2" y2="-2.2" width="0.127" layer="21"/>
+</package>
+</packages>
+<symbols>
+<symbol name="SIS">
+<wire x1="-3.81" y1="1.905" x2="-3.81" y2="0" width="0.254" layer="94"/>
+<wire x1="-3.81" y1="0" x2="-1.905" y2="0" width="0.1524" layer="94"/>
+<wire x1="-3.81" y1="0" x2="-3.81" y2="-1.905" width="0.254" layer="94"/>
+<wire x1="-1.27" y1="0" x2="-0.762" y2="0" width="0.1524" layer="94"/>
+<wire x1="0.254" y1="0" x2="0.635" y2="0" width="0.1524" layer="94"/>
+<wire x1="2.54" y1="-3.175" x2="2.54" y2="-1.905" width="0.254" layer="94"/>
+<wire x1="2.54" y1="-1.905" x2="0.635" y2="3.175" width="0.254" layer="94"/>
+<wire x1="3.81" y1="2.54" x2="5.08" y2="2.54" width="0.254" layer="94"/>
+<wire x1="5.08" y1="2.54" x2="5.08" y2="3.175" width="0.254" layer="94"/>
+<wire x1="0" y1="2.54" x2="1.27" y2="2.54" width="0.254" layer="94"/>
+<wire x1="0" y1="2.54" x2="0" y2="3.175" width="0.254" layer="94"/>
+<wire x1="1.27" y1="0" x2="1.905" y2="0" width="0.1524" layer="94"/>
+<wire x1="-0.762" y1="0" x2="-0.254" y2="-0.762" width="0.1524" layer="94"/>
+<wire x1="-0.254" y1="-0.762" x2="0.254" y2="0" width="0.1524" layer="94"/>
+<text x="-6.35" y="-1.905" size="1.778" layer="95" rot="R90">&gt;NAME</text>
+<text x="-3.81" y="3.175" size="1.778" layer="96" rot="R90">&gt;VALUE</text>
+<pin name="P" x="2.54" y="-5.08" visible="pad" length="short" direction="pas" rot="R90"/>
+<pin name="S" x="5.08" y="5.08" visible="pad" length="short" direction="pas" rot="R270"/>
+<pin name="O" x="0" y="5.08" visible="pad" length="short" direction="pas" rot="R270"/>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="1RT">
+<gates>
+<gate name="G$1" symbol="SIS" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="1RT">
+<connects>
+<connect gate="G$1" pin="O" pad="1"/>
+<connect gate="G$1" pin="P" pad="2"/>
+<connect gate="G$1" pin="S" pad="3"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -13925,6 +13990,7 @@ Source: www.kingbright.com</description>
 <part name="LED3" library="led" deviceset="LED" device="3MM"/>
 <part name="LED4" library="led" deviceset="LED" device="3MM"/>
 <part name="SUPPLY18" library="supply2" deviceset="GND" device=""/>
+<part name="U$3" library="switch" deviceset="1RT" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -13932,7 +13998,7 @@ Source: www.kingbright.com</description>
 </plain>
 <instances>
 <instance part="U$1" gate="G$1" x="71.12" y="33.02"/>
-<instance part="SUPPLY" gate="G$1" x="0" y="38.1" rot="R180"/>
+<instance part="SUPPLY" gate="G$1" x="-15.24" y="38.1" rot="R180"/>
 <instance part="JP2" gate="A" x="78.74" y="73.66" rot="R180"/>
 <instance part="SUPPLY1" gate="+15V" x="91.44" y="43.18"/>
 <instance part="SUPPLY2" gate="G$1" x="91.44" y="22.86"/>
@@ -13986,6 +14052,7 @@ Source: www.kingbright.com</description>
 <instance part="LED3" gate="G$1" x="180.34" y="12.7" rot="R90"/>
 <instance part="LED4" gate="G$1" x="180.34" y="10.16" rot="R90"/>
 <instance part="SUPPLY18" gate="GND" x="187.96" y="-7.62"/>
+<instance part="U$3" gate="G$1" x="5.08" y="43.18" rot="R270"/>
 </instances>
 <busses>
 </busses>
@@ -14287,19 +14354,12 @@ Source: www.kingbright.com</description>
 <wire x1="53.34" y1="27.94" x2="27.94" y2="27.94" width="0.1524" layer="91"/>
 <wire x1="27.94" y1="27.94" x2="27.94" y2="30.48" width="0.1524" layer="91"/>
 <pinref part="SUPPLY" gate="G$1" pin="1"/>
-<wire x1="2.54" y1="35.56" x2="12.7" y2="35.56" width="0.1524" layer="91"/>
+<wire x1="-12.7" y1="35.56" x2="12.7" y2="35.56" width="0.1524" layer="91"/>
 <wire x1="12.7" y1="35.56" x2="12.7" y2="27.94" width="0.1524" layer="91"/>
 <wire x1="12.7" y1="27.94" x2="27.94" y2="27.94" width="0.1524" layer="91"/>
 <junction x="27.94" y="27.94"/>
 <pinref part="JP1" gate="A" pin="2"/>
 <wire x1="27.94" y1="27.94" x2="27.94" y2="20.32" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$22" class="0">
-<segment>
-<pinref part="SUPPLY" gate="G$1" pin="2"/>
-<pinref part="DC1" gate="G$1" pin="VIN"/>
-<wire x1="2.54" y1="38.1" x2="15.24" y2="38.1" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$23" class="0">
@@ -14352,6 +14412,22 @@ Source: www.kingbright.com</description>
 <wire x1="185.42" y1="17.78" x2="187.96" y2="17.78" width="0.1524" layer="91"/>
 <wire x1="187.96" y1="17.78" x2="187.96" y2="15.24" width="0.1524" layer="91"/>
 <junction x="187.96" y="15.24"/>
+</segment>
+</net>
+<net name="N$22" class="0">
+<segment>
+<pinref part="DC1" gate="G$1" pin="VIN"/>
+<pinref part="U$3" gate="G$1" pin="S"/>
+<wire x1="10.16" y1="38.1" x2="15.24" y2="38.1" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$28" class="0">
+<segment>
+<pinref part="SUPPLY" gate="G$1" pin="2"/>
+<wire x1="-12.7" y1="38.1" x2="-5.08" y2="38.1" width="0.1524" layer="91"/>
+<wire x1="-5.08" y1="38.1" x2="-5.08" y2="40.64" width="0.1524" layer="91"/>
+<pinref part="U$3" gate="G$1" pin="P"/>
+<wire x1="-5.08" y1="40.64" x2="0" y2="40.64" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
