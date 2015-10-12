@@ -1,0 +1,104 @@
+\documentclass[a4paper, 8pt, landscape]{article}
+
+\usepackage{tikz}
+\usepackage[T1]{fontenc}     
+\usepackage[francais]{babel} 
+\usepackage{amsmath}
+
+\usepackage{geometry}
+\geometry{hmargin=0.5cm,vmargin=0.2cm}
+
+
+\title{Rep\'erage d'un sys\'eme \`a ultrason et filtrage}
+\author{Cl\'ement Besnier}
+%\setlength{\textwidth}{500pt}
+%\date{}
+\begin{document}
+
+\maketitle
+\section{Introduction}
+
+Chaque ann\'ee a lieu la coupe de France de robotique. Durant cette comp\'etition, deux robots \'evoluent sur une table de deux m\`etres sur trois en 90 secondes pour obtenir un maximum de points. La table \'etant partag\'ee en m\^eme temps par deux robots, il est n\'ecessaire d'\'eviter le robot adverse pour des raisons de s\'ecurit\'e et pour des raisons strat\'egiques, il est m\^eme pr\'ef\'erable de savoir \`a tout moment o\`u le robot adverse est situ\'e sur la table. C'est la raison m\^eme d'un tel syst\`eme de balisage.
+
+\input{schema_table.tex}
+
+\section{Syst\`eme de balisage}
+
+Le syst\`eme de balisage est compos\'e d'une partie \'emettrice et d'une partie r\'eceptrice. La partie \'emettrice (PE) est plac\'ee sur le robot adverse et \'emet des ultrasons. La partie r\'eceptrice (PR) est compos\'ee de trois balises qui se trouvent autour de la table (Voir figure 1). Les trois balises sont synchronis\'ees entre elles mais ne le sont pas avec la partie \'emettrice. 
+
+\section{Rep\'erage}
+
+PE \'emet \`a intervalle r\'egulier un signal particulier. Soient \[ t_{1}, t_{2}, t_{3}\], respectivement les dates de r\'epception du m\^eme signal par PR. Comme PE et PR ne sont pas synchronis\'ees il est impossible de calculer la dur\'ee entre l'\'emission du signal et sa r\'eception et donc on ne peut pas trianguler le signal pour en retrouver l'origine. Cependant, on est certain des trois valeurs suivantes : 
+
+%\begin{multline}
+\[t_{1} - t_{2}\]
+\[t_{1} - t_{3}\]
+\[t_{2} - t_{3}\]
+%\end{multline} 
+, ce qui est proportionnel \`a 
+%\begin{multline}
+\[m_{1} = d((x,y),PR1)-d((x,y),PR2)\]
+\[m_{2} = d((x,y),PR1)-d((x,y),PR3)\]
+\[m_{3} = d((x,y),PR2)-d((x,y),PR3)\]
+%\end{multline}
+, il faut juste multiplier les diff\'erences de dates par la vitesse du son dans l'air dans des conditions normales. Les mesures \[m_{1}, m_{2},  m_{3} \] permettent de retrouver (x,y) en r\'esolvant le syst\`eme.
+
+\section{Interpr\'etation et r\'esolution}
+
+Les trois \'equations du syst\'eme repr\'esentent trois \'equations d'hyperbole. (x,y) se retrouvent \`a l'intersection de trois branches d'hyperbole. Cependant,la formule donn\'ee \`a Mathematica donne, pour chaque couple possible d'\'equation, deux solutions. Au total il y a 6 solutions.
+
+\'equation 1 1 2
+
+\[a = \sqrt{-(-10+{{m}_{1}}^{2})*{({m}_{1}+{m}_{2})}^{2}*(-10+{{m}_{2}}^{2})*(-4+{{m}_{1}}^{2}-2*{{m}_{1}}^{2}+{{m}_{2}}^{2})}\]
+\[x = \frac{-(-12+6*{{m}_{1}}^{2}-12*{m}_{1}*{m}_{2}+3*{{m}_{1}}^{3}*{m}_{2}+6*{{m}_{2}}^{2}-6*{{m}_{1}}^{2}*{{m}_{2}}^{2}+3*{m}_{1}*{{m}_{2}}^{3}+a)}{4*(-18+5*{{m}_{1}}^{2}-8*{m}_{1}*{m}_{2}+5*{{m}_{2}}^{2})}\]
+
+\[Q = 4*({m}_{1}+{m}_{2})*(-18+5*{{m}_{1}}^{2}-8*{m}_{1}*{m}_{2}+5*{{m}_{2}}^{2})\]
+    \[y =  \frac{-1}{Q*(72*{m}_{1}-28*{{m}_{1}}^{3}+72*{m}_{2}+4*{{m}_{1}}^{2}*{m}_{2}+{{m}_{1}}^{4}*{m}_{2}+20*{m}_{1}*{{m}_{2}}^{2}+{{m}_{1}}^{3}*{{m}_{2}}^{2}-12*{{m}_{2}}^{3}-{{m}_{1}}^{2}*{{m}_{2}}^{3}-{m}_{1}*{{m}_{2}}^{4}-3*{m}_{1}*a+3*{m}_{2}*a)} \]
+
+\'equation 2 1 2
+
+\[a = \sqrt{-(-10+{{m}_{1}}^{2})*{({m}_{1}+{m}_{2})}^{2}*(-10+{{m}_{2}}^{2})*(-4+{{m}_{1}}^{2}-2*{m}_{1}*{m}_{2}+{{m}_{2}}^{2})}\]
+
+    \[x = \frac{-(-12+6*{{m}_{1}}^{2}-12*{m}_{1}*{m}_{2}+3*{{m}_{1}}^{3}*{m}_{2}+6*{{m}_{2}}^{2}-6*{{m}_{1}}^{2}*{{m}_{2}}^{2}+3*{m}_{1}*{{m}_{2}}^{3}-a)}{4*(-18+5*{{m}_{1}}^{2}-8*{m}_{1}*{m}_{2}+5*{{m}_{2}}^{2})}\]
+
+\[Q=4*({m}_{1}+{m}_{2})*(-18+5* {{m}_{1}}^{2}-8*{m}_{1}*{m}_{2}+5*{{m}_{2}}^{2})\]
+    \[y = \frac{-1}{Q*(72*{m}_{1}-28*{{m}_{1}}^{3}+72*{m}_{2}+4*{{m}_{1}}^{2}*{m}_{2}+{{m}_{1}}^{4}*{m}_{2}+20*{m}_{1}*{{m}_{2}}^{2}+{{m}_{1}}^{3}*{{m}_{2}}^{2}-12*{{m}_{2}}^{3}-{{m}_{1}}^{2}* {{m}_{2}}^{3}-{m}_{1}*{{m}_{2}}^{4}+3*{m}_{1}*a-3*{m}_{2}*a)}\]
+    
+
+\'equation 1 2 3
+
+\[a = \sqrt{-(-10+{{m}_{2}}^{2})*{(-2*{m}_{2}+{m}_{3})}^{2}*(-4+{{m}_{3}}^{2})*(-10+{{m}_{2}}^{2}-2*{m}_{2}*{m}_{3}+{{m}_{3}}^{2})}\]
+    \[x =  \frac{-(-12+6*{{m}_{3}}^{2}+3*{{m}_{2}}^{2}*{{m}_{3}}^{2}-3*{m}_{2}*{{m}_{3}}^{3}-a)}{4*(-18+2*{{m}_{2}}^{2}-2*{m}_{2}*{m}_{3}+5*{{m}_{3}}^{2})}\]
+    \[y = \frac{-144*{m}_{2}+16*{{m}_{2}}^{3}+72*{m}_{3}-56*{{m}_{2}}^{2}*{m}_{3}+4*{{m}_{2}}^{4}*{m}_{3}+80*{m}_{2}*{{m}_{3}}^{2}-8*{{m}_{2}}^{3}*{{m}_{3}}^{2}-28*{{m}_{3}}^{3}+5*{{m}_{2}}^{2}*{{m}_{3}}^{3}-{m}_{2}*{{m}_{3}}^{4}+3*{m}_{3}*a}{4*(2*{m}_{2}-{m}_{3})*(-18+2*{{m}_{2}}^{2}-2*{m}_{2}*{m}_{3}+5*{{m}_{3}}^{2})}\]
+
+\'equation 2 2 3
+
+\[a = \sqrt-(-10+{{m}_{2}}^{2})*{(-2*{m}_{2}+{m}_{3})}^{2}*(-4+{{m}_{3}}^{2})*(-10+{{m}_{2}}^{2}-2*{m}_{2}*{m}_{3}+{{m}_{3}}^{2})\]
+    \[x = \frac{-(-12+6*{{m}_{3}}^{2}+3*{{m}_{2}}^{2}*{{m}_{3}}^{2}-3*{m}_{2}*{{m}_{3}}^{3}+a)}{4*(-18+2*{{m}_{2}}^{2} -2*{m}_{2}*{m}_{3}+5*{{m}_{3}}^{2})}\]
+    \[y = \frac{-144*{m}_{2}+16*{{m}_{2}}^{3}+72*{m}_{3}-56*{{m}_{2}}^{2}*{m}_{3}+4*{{m}_{2}}^{4}*{m}_{3}+80*{m}_{2}*{{m}_{3}}^{2}-8*{{m}_{2}}^{3}*{{m}_{3}}^{2}-28*{{m}_{3}}^{3}+5*{{m}_{2}}^{2}*{{m}_{3}}^{3}-{m}_{2}*{{m}_{3}}^{4}-3*{m}_{3}*a}{4*(2*{m}_{2}-{m}_{3})*(-18+2*{{m}_{2}}^{2}-2*{m}_{2}*{m}_{3}+5*{{m}_{3}}^{2})}\]
+
+
+
+\'equation 1 3 1
+
+\[a = \sqrt{(-(-10+{{m}_{1}}^{2})*{(2*{m}_{1}+{m}_{3})}^{2}*(-4+{{m}_{3}}^{2})*(-10+{{m}_{1}}^{2}+2*{m}_{1}*{m}_{3}+{{m}_{3}}^{2}))}\]
+\[x = \frac{-(-12+6*{{m}_{3}}^{2}+3*{{m}_{1}}^{2}*{{m}_{3}}^{2}+3*{m}_{1}*{{m}_{3}}^{3}+a)}{4*(-18+2* {{m}_{1}}^{2}+2*{m}_{1}*{m}_{3}+5*{{m}_{3}}^{2})}\]
+\[y = \frac{-144*{m}_{1}+16*{{m}_{1}}^{3}-72*{m}_{3}-8*{{m}_{1}}^{2}*{m}_{3}+4*{{m}_{1}}^{4}*{m}_{3}+16*{m}_{1}*{{m}_{3}}^{2}+8*{{m}_{1}}^{3}*{{m}_{3}}^{2}+12*{{m}_{3}}^{3}+5*{{m}_{1}}^{2}*{{m}_{3}}^{3}+{m}_{1}*{{m}_{3}}^{4}-3*{m}_{3}*a}{4*(2*{m}_{1}+{m}_{3})*(-18+2*{{m}_{1}}^{2}+2*{m}_{1}*{m}_{3}+5*{{m}_{3}}^{2})}\]
+
+
+\'equation 2 3 1
+
+\[a = \sqrt{-(-10+{{m}_{1}}^{2})*{(2*{m}_{1}+{m}_{3})}^{2}*(-4+{{m}_{3}}^{2})*(-10+{{m}_{1}}^{2}+2*{m}_{1}*{m}_{3}+{{m}_{3}}^{2})}\]
+    \[x = \frac{-(-12+6*{{m}_{3}}^{2}+3*{{m}_{1}}^{2}*{{m}_{3}}^{2}+3*{m}_{1}*{{m}_{3}}^{3}-a)}{4*(-18+2*{{m}_{1}}^{2}+2*{m}_{1}*{m}_{3}+5*{{m}_{3}}^{2})}\]
+    \[y = \frac{-144*{m}_{1}+16*{{m}_{1}}^{3}-72*{m}_{3}-8*{{m}_{1}}^{2}*{m}_{3}+4*{{m}_{1}}^{4}*{m}_{3}+16*{m}_{1}*{{m}_{3}}^{2}+8*{{m}_{1}}^{3}*{{m}_{3}}^{2}+12*{{m}_{3}}^{3}+5*{{m}_{1}}^{2}*{{m}_{3}}^{3}+{m}_{1}*{{m}_{3}}^{4}+3*{m}_{3}*a}{4*(2*{m}_{1}+{m}_{3})*(-18+2*{{m}_{1}}^{2}+2*{m}_{1}*{m}_{3}+5*{{m}_{3}}^{2})}\]
+
+\section{Mod\'elisation et Simulation}
+
+Avant de pouvoir faire des mesures sur le robot, on simule les mesures de deux mani\`eres diff\'erentes. La premi\`ere consiste \`a ajouter un bruit gaussien aux \[ m_{1}, m_{2},  m_{3} \] et la deuxi\`eme est d'ajouter un bruit gaussien au couple v\'eritable (x,y).
+
+\section{Filtrage}
+
+Pour chaque mod\`ele, on essayera un filtrage de Kalman classique, un filtrage de Kalman extended et un filtrage de Kalman unscented.
+
+\end{document}
+
