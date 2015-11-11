@@ -5,54 +5,53 @@ from math import sqrt
 import scipy
 
 l_test = [(0.3, 0.5), (-1.2, 1.5), (1.4, 1.7)]
-
-def simuler1(x_reel, y_reel, car):
-    """
-    Cette simulation prend la position réelle, bruite les mesures et les convertit pour obtenir les positions possible
-    """
-    m1, m2, m3 = obtenir_mesures(x_reel, y_reel)
-    m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
-    res = []
-    res.append(equation1_1_2(m1, m2))
-    res.append(equation2_1_2(m1, m2))
-    res.append(equation1_2_3(m2, m3))
-    res.append(equation2_2_3(m2, m3))
-    res.append(equation1_3_1(m3, m1))
-    res.append(equation2_3_1(m3, m1))
-    return res
-def simuler2(x_reel, y_reel, var):
-    """
-    Cette simulation prend la position réelle, convertit les mesures, et bruite les positions
-    """
-    m1, m2, m3 = obtenir_mesures(x_reel, y_reel)
-    res = []
-    res.append(equation1_1_2(m1, m2))
-    res.append(equation2_1_2(m1, m2))
-    res.append(equation1_2_3(m2, m3))
-    res.append(equation2_2_3(m2, m3))
-    res.append(equation1_3_1(m3, m1))
-    res.append(equation2_3_1(m3, m1))
-
-    return [(conv[0]+ np.dot(np.random.randn(),var), conv[1] + np.dot(np.random.randn(),var)) for conv in res]
+class Simulateur:
+    def __init__(self, mesures = [], UKF = None):
+        self.convertisseur = Convertisseur()
+        pass
+    def simuler1(self, x_reel, y_reel, var):
+        """
+        Cette simulation prend la position réelle, bruite les mesures et les convertit pour obtenir les positions possibles
+        """
+        m1, m2, m3 = self.convertisseur.obtenir_mesures(x_reel, y_reel)
+        m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
+        res = []
+        res.append(self.convertisseur.equation1_1_2(m1, m2))
+        res.append(self.convertisseur.equation2_1_2(m1, m2))
+        res.append(self.convertisseur.equation1_2_3(m2, m3))
+        res.append(self.convertisseur.equation2_2_3(m2, m3))
+        res.append(self.convertisseur.equation1_3_1(m3, m1))
+        res.append(self.convertisseur.equation2_3_1(m3, m1))
+        return res
+    def simuler2(self, x_reel, y_reel, var):
+        """
+        Cette simulation prend la position réelle, convertit les mesures, et bruite les positions
+        """
+        m1, m2, m3 = self.convertisseur.obtenir_mesures(x_reel, y_reel)
+        res = []
+        res.append(self.convertisseur.equation1_1_2(m1, m2))
+        res.append(self.convertisseur.equation2_1_2(m1, m2))
+        res.append(self.convertisseur.equation1_2_3(m2, m3))
+        res.append(self.convertisseur.equation2_2_3(m2, m3))
+        res.append(self.convertisseur.equation1_3_1(m3, m1))
+        res.append(self.convertisseur.equation2_3_1(m3, m1))
+        return [(conv[0]+ np.dot(np.random.randn(),var), conv[1] + np.dot(np.random.randn(),var)) for conv in res]
+    def simuler3(self, mesures):
+        if UKF is not None:
+            print "problème"
+        else:
+            pass
+            
     
 
 
-def g(x):
-	"""
-	Pour notre modélisation, on choisit comme vecteur x = [abscisse de la position, 
-	ordonnée de la position, abscisse de la vitesse, ordonnées de la vitesse]
-	"""
-	F = np.matrix([[1.,0.,self.dt,0.],[0.,1.,0.,self.dt],[0.,0.,1.,0.],[0.,0.,0.,1.]])
-	return np.dot(F,x)
 
-def h(x):
-	return np.array(obtenir_mesures(x[0],x[1]))[:,np.newaxis]
 class UnscentedKalman:
     """
        Cette classe implémente l'algorithme du Filitrage de Kalman Unscented
     Source : Machine Learning a probabilistic perspective p. 651-652
     """
-    def __init__(self, g, h, mu0, SIGMA0, d, alpha, beta, kappa, Q, R):
+    def __init__(self, mu0, SIGMA0, d, alpha, beta, kappa, Q, R):
         """
         g est la fonction qui associe la position en t à la position en t+1
         h est la fonction qui associe la position réelle aux mesures correspondantes
@@ -84,7 +83,7 @@ class UnscentedKalman:
         #first Unscented transform
         racine_sigma = scipy.linalg.sqrtm(self.SIGMA)
         self.points_sigma = np.array([self.mu]+[self.mu - gamma*racine_sigma[:,i] for i in range(0,self.d)]+[self.mu + gamma * racine_sigma[:,i] for i in range(0,d)])
-        self.z_etoile_barre = np.array([g(self.points_sigma[i]) for i in range(0,2*self.d)])
+        self.z_etoile_barre = np.array([self.g(self.points_sigma[i]) for i in range(0,2*self.d)])
 		
         self.mu_barre = np.array([wm0*self.points_sigma[:,0]]+[wm*self.points_sigma[:,i] for i in range(1,2*self.d)])
        	#calcul de SIGMA_barre
@@ -100,11 +99,13 @@ class UnscentedKalman:
         """
 		#second unscented transform
         racine_sigma = scipy.linalg.sqrtm(self.SIGMA_barre)
-        self.points_sigma_barre = np.array([self.mu_barre]+[self.mu - gamma*racine_sigma[:,i] for i in range(0,self.d)]+[self.mu_barre + gamma * racine_sigma[:,i] for i in range(0,d)])
+        self.points_sigma_barre = np.array([self.mu_barre]+[self.mu - gamma*racine_sigma[:,i]\
+                 for i in range(0,self.d)]+[self.mu_barre + gamma * racine_sigma[:,i] for i in range(0,d)])
 		#
-        self.y_etoile_barre = np.array([h(self.points_sigma_barre[i]) for i in range(0,2*self.d)])
+        self.y_etoile_barre = np.array([self.h(self.points_sigma_barre[i]) for i in range(0,2*self.d)])
         
-        self.y_chapeau = np.array([self.wm0*self.points_sigma_barre[:,0]]+[self.wm*self.points_sigma_barre[:,i] for i in range(1,2*self.d)])
+        self.y_chapeau = np.array([self.wm0*self.points_sigma_barre[:,0]]+[self.wm*self.points_sigma_barre[:,i]\
+             for i in range(1,2*self.d)])
 		#Calcul de S
         self.S = self.wc0*np.dot((self.y_etoile_barre[0] - self.y_chapeau),(self.y_etoile_barre[0] - self.y_chapeau).T)
         for i in range(1,2*self.d):
@@ -120,28 +121,45 @@ class UnscentedKalman:
         self.SIGMA = self.SIGMA_barre - np.dot(np.dot(self.K,self.S),T)
 	def filtrer(self, y):
 		"""
-		Pöurquoi séparer les deux étapes? Je l'ignore
+		Pourquoi séparer les deux étapes? Je l'ignore
 		"""
 		self.premier_pas()
-		self.second_pas()
+		self.second_pas(y)
+    def g(x):
+	    """
+	    Pour notre modélisation, on choisit comme vecteur x = [abscisse de la position, 
+	    ordonnée de la position, abscisse de la vitesse, ordonnées de la vitesse]
+	    """
+	    F = np.matrix([[1.,0.,self.dt,0.],[0.,1.,0.,self.dt],[0.,0.,1.,0.],[0.,0.,0.,1.]])
+	    return np.dot(F,x)
+
+    def h(x):
+	    return np.array(obtenir_mesures(x[0],x[1]))[:,np.newaxis]
+
+
 #classe à arranger pour le Kalman Unscented
 class FiltrageLaserUnscented:
     
-    def __init__(self, config, x0):
-        self.config = config
+    def __init__(self, x0):
+        """
+        x0 est un array(x,y) ou array(x,y,x point, y point)
+        """
         self.dt = 0.2
-        x = np.array(x).T
+        #x = np.array(x).T
+        mu0 = x0
         #x = np.array([1400,100,0.,0.])[:, np.newaxis] # vecteur d'état au départ
-        P = np.matrix([[30.,0.,0.,0.],[0.,30.,0.,0.],[0.,0.,10.,0.],[0.,0.,0.,10.]]) # incertitude initiale
-        F = np.matrix([[1.,0.,self.dt,0.],[0.,1.,0.,self.dt],[0.,0.,1.,0.],[0.,0.,0.,1.]]) # matrice de transition
-        H = np.matrix([[1.,0.,0.,0.],[0.,1.,0.,0.]])# matrice d'observation
+        SIGMA0 = np.matrix([[30.,0.,0.,0.],[0.,30.,0.,0.],[0.,0.,10.,0.],[0.,0.,0.,10.]]) # incertitude initiale
         R = np.matrix([[900,0.],[0.,900]]) # incertitude sur la mesure
         #Q = np.matrix([[self.dt**3/3., self.dt**2/2., 0, 0],[self.dt**2/2.,self.dt, 0, 0],[0,0,self.dt**3/3.,self.dt**2/2],[0,0,self.dt**2/2,self.dt]])
         #Q *= 20;
         Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2],[self.dt**2/2., 0, 4*self.dt, 0],[0, self.dt**2/2, 0, 4*self.dt]])
         #Q = np.matrix([[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 4, 0],[0, 0, 0, 4]])
         Q *= 30
-        self.filtre_kalman = Kalman(x, P, F, H, R, Q)
+        d = 2
+        kappa = 1
+        alpha = 0.5
+        beta = 1
+        self.filtre_kalman = UnscentedKalman(mu0, SIGMA0, d, alpha, beta, kappa, Q, R)
         self.historique = collections.deque(maxlen=3)
         self.valeurs_rejetees = 0
         self.acceleration = None
@@ -241,8 +259,7 @@ class ExtendedKalman:
 
 class FiltrageLaser:
     
-    def __init__(self, config):
-        self.config = config
+    def __init__(self):
         self.dt = 0.2
         x = np.array([1400,100,0.,0.])[:, np.newaxis] # vecteur d'état au départ
         P = np.matrix([[30.,0.,0.,0.],[0.,30.,0.,0.],[0.,0.,10.,0.],[0.,0.,0.,10.]]) # incertitude initiale
@@ -407,11 +424,10 @@ class Vitesse:
     def to_list(self):
         return [self.vx, self.vy]
 if __name__ == "__main__":
+    simulateur = Simulateur()
     for var in [0.001, 0.01, 0.1]:
-        for i in l_test:
-            x_reel = i[0]
-            y_reel = i[1]
-            res1 = simuler1(x_reel, y_reel, var)
-            res2 = simuler2(x_reel, y_reel, var)
+        for (x_reel,y_reel) in l_test:
+            res1 = simulateur.simuler1(x_reel, y_reel, var)
+            res2 = simulateur.simuler2(x_reel, y_reel, var)
             print res1
             print res2
