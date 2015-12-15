@@ -1,0 +1,37 @@
+Order list for D:/Documents/Git/balise-t3/electronique/balise réceptrice/balise réceptrice - partie filtrage.sch
+Exported from EAGLE with DesignLink
+
+Quantity	Value	Package	Order code	Manufacturer	Manuf. Code	Availability	Price (from)	Description
+8	47n	C050-024X044	unknown					
+1	220p	C050-024X044	1653285	SUSUMU	RR1220P-104-B-T5	1471	0.0801	SUSUMU - RR1220P-104-B-T5 - RES COUCHE MINCE 100K 0.1% 0.1W 0805
+2	1n	C050-024X044	unknown					
+2	1n5	C050-024X044	unknown					
+2	1µ5	C150-091X182	unknown					
+1	2n2	C050-024X044	unknown					
+//6	100n	C050-024X044	unknown					
+//1	1N4004	DO41-10	unknown					
+//3	TL084P	DIL14	unknown					
+//1		1X02	unknown					
+//3		1X01	unknown					
+1	820	0207/2V	unknown					
+1	1200	0207/2V	unknown					
+1	470	0207/2V	unknown					
+1	22k	0207/2V	unknown					
+//2	500	RTRIM3339P	unknown					
+1	1K	0204/7	unknown					
+1	1M	0204/7	unknown					
+1	47K	0204/7	unknown					
+1	82K	0204/7	unknown					
+1	47K	0207/2V	unknown					
+2	82K	0207/2V	unknown					
+2	1K8	0207/2V	unknown					
+//2	2K	RTRIM3339P	unknown					
+2	680K	0207/2V	unknown					
+//3	100K	RTRIM3339P	unknown					
+1	150K	0207/2V	unknown					
+2	180K	0207/2V	unknown					
+2	2K2	0207/2V	unknown					
+//1		10P	unknown					
+//1	AD633JN	DIL08	unknown					
+//2	RJ45_FEMELLE	RJ45_FEMELLE	unknown					
+//1	SWITCH_DP3T_SP112	SWITCH_SP112	unknown					

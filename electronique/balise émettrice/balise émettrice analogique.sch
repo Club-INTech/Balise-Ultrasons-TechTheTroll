@@ -13918,9 +13918,21 @@ Marquardt, Siemens, C&amp;K, ITT, and others&lt;p&gt;
 <attribute name="MPN" value=""/>
 <attribute name="OC_FARNELL" value="unknown"/>
 </part>
-<part name="U$2" library="switch" deviceset="1RT" device=""/>
-<part name="JP3" library="pinhead" deviceset="PINHD-1X1" device=""/>
-<part name="JP4" library="pinhead" deviceset="PINHD-1X1" device=""/>
+<part name="U$2" library="switch" deviceset="1RT" device="">
+<attribute name="MF" value=""/>
+<attribute name="MPN" value=""/>
+<attribute name="OC_FARNELL" value="unknown"/>
+</part>
+<part name="JP3" library="pinhead" deviceset="PINHD-1X1" device="">
+<attribute name="MF" value=""/>
+<attribute name="MPN" value=""/>
+<attribute name="OC_FARNELL" value="unknown"/>
+</part>
+<part name="JP4" library="pinhead" deviceset="PINHD-1X1" device="">
+<attribute name="MF" value=""/>
+<attribute name="MPN" value=""/>
+<attribute name="OC_FARNELL" value="unknown"/>
+</part>
 </parts>
 <sheets>
 <sheet>
@@ -14242,9 +14254,21 @@ C1=C2= 330n</text>
 <attribute name="MF" x="17.78" y="17.78" size="1.778" layer="96" display="off"/>
 <attribute name="MPN" x="17.78" y="17.78" size="1.778" layer="96" display="off"/>
 </instance>
-<instance part="U$2" gate="G$1" x="93.98" y="119.38" rot="R270"/>
-<instance part="JP3" gate="G$1" x="109.22" y="60.96" rot="R90"/>
-<instance part="JP4" gate="G$1" x="109.22" y="0" rot="R270"/>
+<instance part="U$2" gate="G$1" x="93.98" y="119.38" rot="R270">
+<attribute name="OC_FARNELL" x="93.98" y="119.38" size="1.778" layer="96" display="off"/>
+<attribute name="MF" x="93.98" y="119.38" size="1.778" layer="96" display="off"/>
+<attribute name="MPN" x="93.98" y="119.38" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="JP3" gate="G$1" x="109.22" y="60.96" rot="R90">
+<attribute name="OC_FARNELL" x="109.22" y="60.96" size="1.778" layer="96" display="off"/>
+<attribute name="MF" x="109.22" y="60.96" size="1.778" layer="96" display="off"/>
+<attribute name="MPN" x="109.22" y="60.96" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="JP4" gate="G$1" x="109.22" y="0" rot="R270">
+<attribute name="OC_FARNELL" x="109.22" y="0" size="1.778" layer="96" display="off"/>
+<attribute name="MF" x="109.22" y="0" size="1.778" layer="96" display="off"/>
+<attribute name="MPN" x="109.22" y="0" size="1.778" layer="96" display="off"/>
+</instance>
 </instances>
 <busses>
 </busses>

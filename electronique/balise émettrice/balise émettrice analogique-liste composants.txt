@@ -1,0 +1,34 @@
+Order list for D:/Documents/Git/balise-t3/electronique/balise émettrice/balise émettrice analogique.sch
+Exported from EAGLE with DesignLink
+
+Qty	Value	Package	Order code	Manufacturer	Manuf. Code	Availability	Price (from)	Description
+2	330n	C075-032X103	unknown					
+2	220p	C075-032X103	9696970	PANASONIC ELECTRONIC COMPONENTS	EEE1EA220SP	1868	0.0699	PANASONIC ELECTRONIC COMPONENTS - EEE1EA220SP - CONDENSATEUR ELEC ALU 22UF 25V CMS
+4	100n	C050-024X044	unknown					
+4	diode	D-2.5	unknown					
+//1		ZDIO-2.5	unknown					
+//1	1N4004	DO41-10	unknown					
+//1	R-78C5.0-1.0	SIP3	unknown					
+//1		NMA	1021434	MURATA POWER SOLUTIONS	NMA1205DC	214	2.91	MURATA POWER SOLUTIONS - NMA1205DC - CONVERTISSEUR DC/DC 1W +/-5V
+//2	TL084P	DIL14	unknown					
+//1	J7MM	07	unknown					
+//1		1X02	unknown					
+//1		JP1	unknown					
+//2		1X01	unknown					
+//1	GREEN	Q62902-B155	unknown					
+//1	RED	Q62902-B155	unknown					
+1	4K7	0207/2V	unknown					
+1	5K6	0204/7	unknown					
+8	10K	0207/2V	unknown					
+3	18K	0207/2V	unknown					
+2	3K9	0207/2V	unknown					
+1	8K2	0207/2V	unknown					
+//8	10K	RTRIM3339P	unknown					
+1	560	0204/7	unknown					
+//1	6K8	0207/2V	unknown					
+//1	1K	0207/2V	unknown					
+//1	2K	RTRIM3339P	unknown					
+2		07P	unknown					
+//1		TO92-CBE	unknown					
+//1	AD633JN	DIL08	unknown					
+//1	1RT	1RT	unknown					
