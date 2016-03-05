@@ -13984,7 +13984,7 @@ Marquardt, Siemens, C&amp;K, ITT, and others&lt;p&gt;
 <part name="DC1" library="dc-dc-converter" deviceset="R-78C*-1.0" device="" technology="5.0"/>
 <part name="JP1" library="jumper" deviceset="JP1E" device=""/>
 <part name="SUPPLY17" library="supply2" deviceset="GND" device=""/>
-<part name="R13" library="resistor" deviceset="R-EU_" device="0204/7" value="22K"/>
+<part name="R13" library="resistor" deviceset="R-EU_" device="0204/7" value="220"/>
 <part name="LED1" library="led" deviceset="LED" device="3MM"/>
 <part name="LED2" library="led" deviceset="LED" device="3MM"/>
 <part name="LED3" library="led" deviceset="LED" device="3MM"/>
