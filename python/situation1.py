@@ -2,13 +2,36 @@
 
 from bruitage_conversion import *
 from math import sqrt
-import scipy
+import collections
+import scipy.linalg
 
-l_test = [(0.3, 0.5), (-1.2, 1.5), (1.4, 1.7)]
 class Simulateur:
-    def __init__(self, mesures = [], UKF = None):
+    def __init__(self, sizeTableX, sizeTableY, UKF = None):
         self.convertisseur = Convertisseur()
-        pass
+        self.sizeTableX = sizeTableX
+        self.sizeTableY = sizeTableY
+    def add_noise_to_real_position(self, x_reel, y_reel, var):
+        x_reel +=  np.random.randn()*var
+        y_reel += np.random.randn()*var
+        m1, m2, m3 = self.convertisseur.obtenir_mesures(x_reel, y_reel)
+        return np.array([m1, m2, m3])
+    def add_noise_to_sensor_measures(self, x_reel, y_reel, var):
+        m1, m2, m3 = self.convertisseur.obtenir_mesures(x_reel, y_reel)
+        m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
+        return np.array([m1, m2, m3])
+    def simuler1(self, x_reel, y_reel, var):
+        """
+        Cette simulation prend la position réelle, bruite les mesures et les convertit pour obtenir les positions possibles
+        """
+        m1, m2, m3 = self.add_noise_to_sensor_measures(x_reel, y_reel, var)
+        res = []
+        res.append(self.convertisseur.equation1_1_2(m1, m2))
+        res.append(self.convertisseur.equation2_1_2(m1, m2))
+        res.append(self.convertisseur.equation1_2_3(m2, m3))
+        res.append(self.convertisseur.equation2_2_3(m2, m3))
+        res.append(self.convertisseur.equation1_3_1(m3, m1))
+        res.append(self.convertisseur.equation2_3_1(m3, m1))
+        return res
     def simuler1(self, x_reel, y_reel, var):
         """
         Cette simulation prend la position réelle, bruite les mesures et les convertit pour obtenir les positions possibles
@@ -36,22 +59,33 @@ class Simulateur:
         res.append(self.convertisseur.equation1_3_1(m3, m1))
         res.append(self.convertisseur.equation2_3_1(m3, m1))
         return [(conv[0]+ np.dot(np.random.randn(),var), conv[1] + np.dot(np.random.randn(),var)) for conv in res]
-    def simuler3(self, mesures):
-        if UKF is not None:
-            print "problème"
-        else:
-            pass
-            
-    
 
+    def __compute_velocity(self, x1, y1, x2, y2, duree):
+        return np.array([(x2-x1)/duree, (y2-y1)/duree])
 
+    def main(self, positions, duree):
+        for posi in positions:
+            #Vec2 p_bruit = laser.position_balise(balise.id);
+            #prévoir le cas où il manque une donnée
+            filtrage_lu = FiltrageLaserUnscented(posi)
+
+            #vitesse = self.__compute_velocity(x1, y1, x2, y2, duree)
+            # Mise à jour du modèle de filtrage
+            vecteur_mesure = np.concatenate([posi, ])
+            filtrage_lu.update(vecteur_mesure)
+            # Récupération des valeurs filtrées
+            p_filtre = filtrage_lu.position()
+
+            #Vérification si l'obstacle est sur la table
+            if p_filtre.x > -self.sizeTableX/2 and p_filtre.y > 0 and p_filtre.x < self.sizeTableX/2 and p_filtre.y < self.sizeTableY:
+                print "sur la table"
 
 class UnscentedKalman:
     """
        Cette classe implémente l'algorithme du Filitrage de Kalman Unscented
     Source : Machine Learning a probabilistic perspective p. 651-652
     """
-    def __init__(self, mu0, SIGMA0, d, alpha, beta, kappa, Q, R):
+    def __init__(self, mu0, SIGMA0, Q, R, d, alpha=2., beta=2., kappa=0., dt=0.25):
         """
         g est la fonction qui associe la position en t à la position en t+1
         h est la fonction qui associe la position réelle aux mesures correspondantes
@@ -59,6 +93,7 @@ class UnscentedKalman:
         SIGMA est la matrice de covariance initiale
         
         """
+        self.dt = 0.25
         self.d = d # c'est la dimension de l'espace cachée 
         self.alpha = float(alpha) #paramètre bizarre
         self.beta = float(beta)  #paramètre bizarre
@@ -66,111 +101,150 @@ class UnscentedKalman:
         self.mu = mu0 #position initiale
         self.SIGMA = SIGMA0 #variance initiale
         self.lam = alpha**2*(d+kappa) - d # un paramètre un peu étrange aussi
-        self.gamma = math.sqrt(d+self.lam) #à nouveau bizarre ! 
+        self.gamma = sqrt(d+self.lam) #à nouveau bizarre !
         self.Q = Q # matrice de covariance de la gaussienne de l'équation d'évolution
         self.R = R #matrice de covariance de la gaussienne de l'équation d'observation
 
-		#calculs de coefficients
+        #calculs de coefficients
         self.wm0 = self.lam /(self.d*self.lam)
         self.wm = 1/(2.*(self.d+self.lam))
         self.wc0 = self.wm0+(1-self.alpha**2+self.beta)
 
-		
     def premier_pas(self):
         """
         Estimation de mu_barre et de sigma_barre à partir de l'itération précédente
         """
         #first Unscented transform
         racine_sigma = scipy.linalg.sqrtm(self.SIGMA)
-        self.points_sigma = np.array([self.mu]+[self.mu - gamma*racine_sigma[:,i] for i in range(0,self.d)]+[self.mu + gamma * racine_sigma[:,i] for i in range(0,d)])
-        self.z_etoile_barre = np.array([self.g(self.points_sigma[i]) for i in range(0,2*self.d)])
-		
-        self.mu_barre = np.array([wm0*self.points_sigma[:,0]]+[wm*self.points_sigma[:,i] for i in range(1,2*self.d)])
-       	#calcul de SIGMA_barre
-        self.SIGMA_barre = self.wc0*dot( (self.z_etoile_barre[0] - self.mu_barre),(self.z_etoile_barre[0] - self.mu_barre).T)
+        print "mu", self.mu.shape, "sigma", racine_sigma.shape
+        self.points_sigma = [self.mu]
+        self.points_sigma.extend([self.mu - self.gamma*racine_sigma[:, i] for i in range(0, self.d)])
+        self.points_sigma.extend([self.mu + self.gamma * racine_sigma[:, i] for i in range(0, self.d)])
+        print np.array(self.points_sigma).shape
+        self.points_sigma = np.array(self.points_sigma)
+        #self.z_etoile_barre = np.array([self.g(self.points_sigma[i]).reshape((4,)) for i in range(0, 2*self.d)])
+        self.z_etoile_barre = np.zeros(self.points_sigma.shape)
+        for i in range(0, 2*self.d):
+            self.z_etoile_barre[i,:] = self.g(self.points_sigma[i])
+        self.mu_barre = np.array([self.wm0*self.points_sigma[:, 0]]+[self.wm*self.points_sigma[:, i] for i in range(1, 2*self.d)])
+        #calcul de SIGMA_barre
+        print "mu barre", self.mu_barre.shape
+        print "z_etoile_barre", self.z_etoile_barre.shape
+        self.SIGMA_barre = self.wc0*np.dot((self.z_etoile_barre[0] - self.mu_barre),
+                                                (self.z_etoile_barre[0] - self.mu_barre).T)
         for i in range(1,2*self.d):
-            self.SIGMA_barre += self.wm*np.dot((self.z_etoile_barre[i] - self.mu_barre),(self.z_etoile_barre[i] - self.mu_barre).T)
+            self.SIGMA_barre += self.wm*np.dot((self.z_etoile_barre[i] - self.mu_barre),\
+                                               (self.z_etoile_barre[i] - self.mu_barre).T)
         self.SIGMA_barre += self.Q
 
     def second_pas(self, y):
         """
         y est la mesure à l'instant t
-		Estimation de mu et de sigma présent
+        Estimation de mu et de sigma présent
         """
-		#second unscented transform
+        #second unscented transform
         racine_sigma = scipy.linalg.sqrtm(self.SIGMA_barre)
-        self.points_sigma_barre = np.array([self.mu_barre]+[self.mu - gamma*racine_sigma[:,i]\
-                 for i in range(0,self.d)]+[self.mu_barre + gamma * racine_sigma[:,i] for i in range(0,d)])
-		#
-        self.y_etoile_barre = np.array([self.h(self.points_sigma_barre[i]) for i in range(0,2*self.d)])
-        
-        self.y_chapeau = np.array([self.wm0*self.points_sigma_barre[:,0]]+[self.wm*self.points_sigma_barre[:,i]\
+        self.points_sigma_barre = np.array([self.mu_barre]+[self.mu - self.gamma*racine_sigma[: ,i]\
+                 for i in range(0,self.d)]+[self.mu_barre + self.gamma * racine_sigma[:, i] for i in range(0, self.d)])
+        self.y_etoile_barre = np.array([self.h(self.points_sigma_barre[i]) for i in range(0, 2*self.d)])
+        self.y_chapeau = np.array([self.wm0*self.points_sigma_barre[:,0]]+[self.wm*self.points_sigma_barre[:, i]\
              for i in range(1,2*self.d)])
-		#Calcul de S
-        self.S = self.wc0*np.dot((self.y_etoile_barre[0] - self.y_chapeau),(self.y_etoile_barre[0] - self.y_chapeau).T)
+        #Calcul de S
+        self.S = self.wc0*np.dot((self.y_etoile_barre[0] - self.y_chapeau), \
+                                 (self.y_etoile_barre[0] - self.y_chapeau).T)
         for i in range(1,2*self.d):
-            self.S += wm*np.dot((self.y_etoile_barre[i] - self.y_chapeau),(self.y_etoile_barre[i] - self.y_chapeau).T)
+            self.S += self.wm*np.dot((self.y_etoile_barre[i] - self.y_chapeau), \
+                                (self.y_etoile_barre[i] - self.y_chapeau).T)
         self.S += self.R
-		#calcul de SIGMA_z_y
-        self.SIGMA_z_y_barre = wc0*np.dot((self.z_etoile_barre[0] - self.mu_barre),(self.y_etoile_barre[0] - self.y_chapeau).T)
+        #calcul de SIGMA_z_y
+        self.SIGMA_z_y_barre = self.wc0*np.dot((self.z_etoile_barre[0] - self.mu_barre), \
+                                          (self.y_etoile_barre[0] - self.y_chapeau).T)
         for i in range(1, 2*self.D):
-            self.SIGMA_z_y_barre += wm*np.dot((self.z_etoile_barre[i] - self.mu_barre),(self.y_etoile_barre[i] - self.y_chapeau).T)
-        self.K = np.dot(self.SIGMA_z_y_barre, linalg.inv(self.S))
-		#Les valeurs qui nous interessent
+            self.SIGMA_z_y_barre += self.wm*np.dot((self.z_etoile_barre[i] - self.mu_barre), \
+                                              (self.y_etoile_barre[i] - self.y_chapeau).T)
+        self.K = np.dot(self.SIGMA_z_y_barre, scipy.linalg.linalg.inv(self.S))
+        #Les valeurs qui nous interessent
         self.mu = self.mu_barre + np.dot(self.K, (y - self.y_chapeau))
-        self.SIGMA = self.SIGMA_barre - np.dot(np.dot(self.K,self.S),T)
-	def filtrer(self, y):
-		"""
-		Pourquoi séparer les deux étapes? Je l'ignore
-		"""
-		self.premier_pas()
-		self.second_pas(y)
-    def g(x):
-	    """
-	    Pour notre modélisation, on choisit comme vecteur x = [abscisse de la position, 
-	    ordonnée de la position, abscisse de la vitesse, ordonnées de la vitesse]
-	    """
-	    F = np.matrix([[1.,0.,self.dt,0.],[0.,1.,0.,self.dt],[0.,0.,1.,0.],[0.,0.,0.,1.]])
-	    return np.dot(F,x)
+        self.SIGMA = self.SIGMA_barre - np.dot(np.dot(self.K, self.S), self.K.T)
 
-    def h(x):
-	    return np.array(obtenir_mesures(x[0],x[1]))[:,np.newaxis]
+    def filter(self, y):
+        """
+        Pourquoi séparer les deux étapes? Je l'ignore
+        """
+        self.premier_pas()
+        self.second_pas(y)
+
+    def g(self, x, dim=4):
+        """
+        Pour notre modélisation, on choisit comme vecteur x = [abscisse de la position,
+        ordonnée de la position] ou [abscisse de la position,
+        ordonnée de la position, abscisse de la vitesse, ordonnées de la vitesse]
+        """
+        if dim == 2:
+            F = np.matrix([[1., 0.], [0., 1.]])
+        else: #dim == 4
+            F = np.matrix([[1., 0., self.dt, 0.], [0., 1., 0., self.dt], [0., 0., 1., 0.], [0., 0., 0., 1.]])
+        #print F.shape, x.shape
+        return np.dot(F, x)
+
+    def h(self, x):
+        """
+        La fonction renvoie les données comme si elles ont été mesurées.
+        """
+        return np.array(self.Convertisseur.obtenir_mesures(x[0],x[1]))[:,np.newaxis]
+
+    def get_position(self):
+        """
+        self.mu est la position moyenne
+        """
+        return self.mu
 
 
 #classe à arranger pour le Kalman Unscented
 class FiltrageLaserUnscented:
     
-    def __init__(self, x0):
+    def __init__(self, x0, dt=0.2, dime = 2):
         """
         x0 est un array(x,y) ou array(x,y,x point, y point)
         """
-        self.dt = 0.2
+        self.dt = dt
         #x = np.array(x).T
         mu0 = x0
         #x = np.array([1400,100,0.,0.])[:, np.newaxis] # vecteur d'état au départ
-        SIGMA0 = np.matrix([[30.,0.,0.,0.],[0.,30.,0.,0.],[0.,0.,10.,0.],[0.,0.,0.,10.]]) # incertitude initiale
-        R = np.matrix([[900,0.],[0.,900]]) # incertitude sur la mesure
-        #Q = np.matrix([[self.dt**3/3., self.dt**2/2., 0, 0],[self.dt**2/2.,self.dt, 0, 0],[0,0,self.dt**3/3.,self.dt**2/2],[0,0,self.dt**2/2,self.dt]])
-        #Q *= 20;
-        Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2],[self.dt**2/2., 0, 4*self.dt, 0],[0, self.dt**2/2, 0, 4*self.dt]])
-        #Q = np.matrix([[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 4, 0],[0, 0, 0, 4]])
-        Q *= 30
+        if dime == 2:
+            SIGMA0 = np.matrix([[1., 0.], [0., 1.]])
+            R = np.matrix([[900, 0.], [0., 900]])
+            Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2], \
+                       [self.dt**2/2., 0, 4*self.dt, 0],[0, self.dt**2/2, 0, 4*self.dt]])
+        else:
+            SIGMA0 = np.matrix([[30., 0., 0., 0.], [0., 30., 0., 0.], [0., 0., 10., 0.], [0., 0., 0., 10.]]) # incertitude initiale
+            R = np.matrix([[900, 0.], [0., 900]]) # incertitude sur la mesure
+            #Q = np.matrix([[self.dt**3/3., self.dt**2/2., 0, 0],[self.dt**2/2.,self.dt, 0, 0],
+            #            [0,0,self.dt**3/3.,self.dt**2/2],[0,0,self.dt**2/2,self.dt]])
+            #Q *= 20;
+            Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2], \
+                           [self.dt**2/2., 0, 4*self.dt, 0],[0, self.dt**2/2, 0, 4*self.dt]])
+            #Q = np.matrix([[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 4, 0],[0, 0, 0, 4]])
+            Q *= 30
         d = 2
         kappa = 1
         alpha = 0.5
         beta = 1
-        self.filtre_kalman = UnscentedKalman(mu0, SIGMA0, d, alpha, beta, kappa, Q, R)
+        self.ukf = UnscentedKalman(mu0, SIGMA0, Q, R, d, alpha=alpha, beta=beta, kappa=kappa)
         self.historique = collections.deque(maxlen=3)
         self.valeurs_rejetees = 0
         self.acceleration = None
         
     def etat_robot_adverse(self):
-        return self.filtre_kalman.x
+        return self.ukf.x
         
     def update_dt(self, new_dt):
+        """
+        Modifie la période d'échantillonage
+        """
         self.dt = new_dt
-        self.filtre_kalman.F[0,2] = new_dt
-        self.filtre_kalman.F[1,3] = new_dt
+        self.ukf.F[0,2] = new_dt
+        self.ukf.F[1,3] = new_dt
     
     def position(self):
         #state = self.filtre_kalman.x
@@ -178,18 +252,25 @@ class FiltrageLaserUnscented:
         return self.last_point
     
     def vitesse(self):
-        state = self.filtre_kalman.x
+        state = self.ukf.x
         return Vitesse(int(state[2]), int(state[3]))
                 
-    def update(self, x, y):
-        if self._filtrage_acceleration(Point(x, y)):
-            self.last_point = Point(x, y)
-            #self.filtre_kalman.prediction()
-            #self.filtre_kalman.measurement(np.array([x,y])[:, np.newaxis])
-            #self.historique.append(self.position())
+    def update(self, y):
+        """
+        fonction qui est utilisé à chaque mesure
+        y est un vecteur de mesure de dimension 4 : (x, y, x point, y point)
+        """
+
+        #if self._filtrage_acceleration(Point(x, y)):
+        #    self.last_point = Point(x, y)
+        self.ukf.filter(y)
+        pos_filtre = self.ukf.get_position()
+        #    self.filtre_kalman.measurement(np.array([x,y])[:, np.newaxis])
+        self.historique.append(self.ukf.get_position())
+        print y, pos_filtre[0], pos_filtre[1]
         #else:
-            #self.last_point = None
-            #self.filtre_kalman.prediction()
+        #    self.last_point = None
+        #    self.filtre_kalman.prediction()
         
     def _filtrage_acceleration(self, pointm0):
         """
@@ -249,8 +330,8 @@ class Kalman:
 
     
   def filtrer(self, Z, u = None):
-    prediction(u)
-    measurement(Z)
+    self.prediction(u)
+    self.mesure(Z)
 
 
 class ExtendedKalman:
@@ -261,14 +342,16 @@ class FiltrageLaser:
     
     def __init__(self):
         self.dt = 0.2
-        x = np.array([1400,100,0.,0.])[:, np.newaxis] # vecteur d'état au départ
-        P = np.matrix([[30.,0.,0.,0.],[0.,30.,0.,0.],[0.,0.,10.,0.],[0.,0.,0.,10.]]) # incertitude initiale
-        F = np.matrix([[1.,0.,self.dt,0.],[0.,1.,0.,self.dt],[0.,0.,1.,0.],[0.,0.,0.,1.]]) # matrice de transition
-        H = np.matrix([[1.,0.,0.,0.],[0.,1.,0.,0.]])# matrice d'observation
-        R = np.matrix([[900,0.],[0.,900]]) # incertitude sur la mesure
-        #Q = np.matrix([[self.dt**3/3., self.dt**2/2., 0, 0],[self.dt**2/2.,self.dt, 0, 0],[0,0,self.dt**3/3.,self.dt**2/2],[0,0,self.dt**2/2,self.dt]])
+        x = np.array([1400, 100, 0., 0.])[:, np.newaxis] # vecteur d'état au départ
+        P = np.matrix([[30.0, 0., 0., 0.], [0., 30., 0., 0.], [0., 0., 10., 0.], [0., 0., 0., 10.]]) # incertitude initiale
+        F = np.matrix([[1., 0., self.dt, 0.], [0., 1., 0., self.dt], [0., 0., 1., 0.], [0., 0., 0., 1.]]) # matrice de transition
+        H = np.matrix([[1., 0., 0., 0.], [0., 1., 0., 0.]])# matrice d'observation
+        R = np.matrix([[900, 0.], [0., 900]]) # incertitude sur la mesure
+        #Q = np.matrix([[self.dt**3/3., self.dt**2/2., 0, 0],[self.dt**2/2.,self.dt, 0, 0],
+        #            [0,0,self.dt**3/3.,self.dt**2/2],[0,0,self.dt**2/2,self.dt]])
         #Q *= 20;
-        Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2],[self.dt**2/2., 0, 4*self.dt, 0],[0, self.dt**2/2, 0, 4*self.dt]])
+        Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2], \
+                       [self.dt**2/2., 0, 4*self.dt, 0],[0, self.dt**2/2, 0, 4*self.dt]])
         #Q = np.matrix([[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 4, 0],[0, 0, 0, 4]])
         Q *= 30
         self.filtre_kalman = Kalman(x, P, F, H, R, Q)
@@ -383,7 +466,7 @@ class Point:
     def distance(self, point):
         v = self - point
         d = v.x ** 2 + v.y ** 2
-        return math.sqrt(d)
+        return sqrt(d)
     
     def copy(self):
         return Point(self.x, self.y)
@@ -419,15 +502,29 @@ class Vitesse:
         return "("+str(self.vx)+"," + str(self.vy) + ")"
         
     def norme(self):
-        return math.sqrt(self.vx ** 2 + self.vy ** 2)
+        return sqrt(self.vx ** 2 + self.vy ** 2)
         
     def to_list(self):
         return [self.vx, self.vy]
+
+
+def get_velocity(positions, dt):
+    velocities = np.zeros(positions.shape)
+    for i in range(1, velocities.shape[0]):
+        velocities[i, :] = (positions[i, :] - positions[i-1, :])/float(dt)
+    return velocities
+
 if __name__ == "__main__":
-    simulateur = Simulateur()
-    for var in [0.001, 0.01, 0.1]:
-        for (x_reel,y_reel) in l_test:
-            res1 = simulateur.simuler1(x_reel, y_reel, var)
-            res2 = simulateur.simuler2(x_reel, y_reel, var)
-            print res1
-            print res2
+    measures_pos = np.genfromtxt("mesures_25.txt", delimiter="\t")
+    vite = get_velocity(measures_pos, 0.25)
+    print vite[:10,:]
+    measures = np.concatenate((measures_pos,vite), axis=1)
+    print measures[:10,:]
+    print measures.shape
+    # indice = 10
+    # print measures_pos.shape
+    # var = 10
+    filtering = FiltrageLaserUnscented(measures[0, :], dt=0.25, dime=4)
+    # #simu.add_noise_to_sensor_measures(x_reel, y_reel, var)
+    for i in range(1, measures.shape[0]):
+        filtering.update(measures[i, :])
