@@ -5,8 +5,8 @@ from math import sqrt
 import collections
 import scipy.linalg
 
-class Simulateur:
-    def __init__(self, sizeTableX, sizeTableY, UKF = None):
+class Simulator:
+    def __init__(self, sizeTableX, sizeTableY):
         self.convertisseur = Convertisseur()
         self.sizeTableX = sizeTableX
         self.sizeTableY = sizeTableY
@@ -14,11 +14,11 @@ class Simulateur:
         x_reel +=  np.random.randn()*var
         y_reel += np.random.randn()*var
         m1, m2, m3 = self.convertisseur.obtenir_mesures(x_reel, y_reel)
-        return np.array([m1, m2, m3])
+        return np.matrix([m1, m2, m3])
     def add_noise_to_sensor_measures(self, x_reel, y_reel, var):
         m1, m2, m3 = self.convertisseur.obtenir_mesures(x_reel, y_reel)
         m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
-        return np.array([m1, m2, m3])
+        return np.matrix([m1, m2, m3])
     def simuler1(self, x_reel, y_reel, var):
         """
         Cette simulation prend la position réelle, bruite les mesures et les convertit pour obtenir les positions possibles
@@ -61,7 +61,7 @@ class Simulateur:
         return [(conv[0]+ np.dot(np.random.randn(),var), conv[1] + np.dot(np.random.randn(),var)) for conv in res]
 
     def __compute_velocity(self, x1, y1, x2, y2, duree):
-        return np.array([(x2-x1)/duree, (y2-y1)/duree])
+        return np.matrix([(x2-x1)/duree, (y2-y1)/duree])
 
     def main(self, positions, duree):
         for posi in positions:
@@ -99,6 +99,7 @@ class UnscentedKalman:
         self.beta = float(beta)  #paramètre bizarre
         self.kappa = kappa  #paramètre bizarre
         self.mu = mu0 #position initiale
+        #print self.mu, "self.mu"
         self.SIGMA = SIGMA0 #variance initiale
         self.lam = alpha**2*(d+kappa) - d # un paramètre un peu étrange aussi
         self.gamma = sqrt(d+self.lam) #à nouveau bizarre !
@@ -107,62 +108,76 @@ class UnscentedKalman:
 
         #calculs de coefficients
         self.wm0 = self.lam /(self.d*self.lam)
-        self.wm = 1/(2.*(self.d+self.lam))
+        self.wm = 1/(2.*(self.d+self.lam))  #wm = wc (wc non implémenté)
         self.wc0 = self.wm0+(1-self.alpha**2+self.beta)
 
-    def premier_pas(self):
+    def first_step(self):
         """
         Estimation de mu_barre et de sigma_barre à partir de l'itération précédente
         """
         #first Unscented transform
-        racine_sigma = scipy.linalg.sqrtm(self.SIGMA)
-        print "mu", self.mu.shape, "sigma", racine_sigma.shape
+        #racine_sigma = scipy.linalg.sqrtm(self.SIGMA)
+        racine_sigma = np.asmatrix(scipy.linalg.sqrtm(self.SIGMA))
+        print "racine carrée", racine_sigma
+        print "mu", self.mu#, "racine_sigma", racine_sigma.shape, racine_sigma[:, 1].shape
         self.points_sigma = [self.mu]
-        self.points_sigma.extend([self.mu - self.gamma*racine_sigma[:, i] for i in range(0, self.d)])
-        self.points_sigma.extend([self.mu + self.gamma * racine_sigma[:, i] for i in range(0, self.d)])
-        print np.array(self.points_sigma).shape
-        self.points_sigma = np.array(self.points_sigma)
+        self.points_sigma.extend([self.mu - self.gamma*racine_sigma[:, i] for i in range(0, self.d)]) #de -1 à - self.d
+        self.points_sigma.extend([self.mu + self.gamma * racine_sigma[:, i] for i in range(0, self.d)]) # de 1 à self.d
+        #print "self.points_sigma", len(self.points_sigma), np.array(self.points_sigma).shape
+        #self.points_sigma = np.array(self.points_sigma)
         #self.z_etoile_barre = np.array([self.g(self.points_sigma[i]).reshape((4,)) for i in range(0, 2*self.d)])
-        self.z_etoile_barre = np.zeros(self.points_sigma.shape)
+        self.z_etoile_barre = []  #np.asmatrix(np.zeros(self.points_sigma.shape))
         for i in range(0, 2*self.d):
-            self.z_etoile_barre[i,:] = self.g(self.points_sigma[i])
-        self.mu_barre = np.array([self.wm0*self.points_sigma[:, 0]]+[self.wm*self.points_sigma[:, i] for i in range(1, 2*self.d)])
+            self.z_etoile_barre.append(self.g(self.points_sigma[i]))
+            #self.z_etoile_barre[i,:] = self.g(self.points_sigma[i])
+
+        self.mu_barre = self.wm0*self.z_etoile_barre[0]
+        #print "mu_barre", self.mu_barre.shape
+        for i in range(1, 2*self.d):
+            #print "self.wm*self.z_etoile_barre[i]", (self.wm*self.z_etoile_barre[i]).shape
+            self.mu_barre += self.wm*self.z_etoile_barre[i]
         #calcul de SIGMA_barre
-        print "mu barre", self.mu_barre.shape
-        print "z_etoile_barre", self.z_etoile_barre.shape
+        #print "mu barre", self.mu_barre.shape
+        print "z_etoile_barre", len(self.z_etoile_barre), len(self.z_etoile_barre[0]), self.z_etoile_barre[0], self.mu_barre
         self.SIGMA_barre = self.wc0*np.dot((self.z_etoile_barre[0] - self.mu_barre),
                                                 (self.z_etoile_barre[0] - self.mu_barre).T)
         for i in range(1,2*self.d):
-            self.SIGMA_barre += self.wm*np.dot((self.z_etoile_barre[i] - self.mu_barre),\
+            self.SIGMA_barre += self.wm*np.dot((self.z_etoile_barre[i] - self.mu_barre),
                                                (self.z_etoile_barre[i] - self.mu_barre).T)
+        print "SIGMA_barre", self.SIGMA_barre.shape
         self.SIGMA_barre += self.Q
 
-    def second_pas(self, y):
+    def second_step(self, y):
         """
         y est la mesure à l'instant t
         Estimation de mu et de sigma présent
         """
         #second unscented transform
-        racine_sigma = scipy.linalg.sqrtm(self.SIGMA_barre)
-        self.points_sigma_barre = np.array([self.mu_barre]+[self.mu - self.gamma*racine_sigma[: ,i]\
-                 for i in range(0,self.d)]+[self.mu_barre + self.gamma * racine_sigma[:, i] for i in range(0, self.d)])
-        self.y_etoile_barre = np.array([self.h(self.points_sigma_barre[i]) for i in range(0, 2*self.d)])
-        self.y_chapeau = np.array([self.wm0*self.points_sigma_barre[:,0]]+[self.wm*self.points_sigma_barre[:, i]\
-             for i in range(1,2*self.d)])
+        racine_sigma = np.asmatrix(scipy.linalg.sqrtm(self.SIGMA_barre))
+        self.points_sigma_barre = [self.mu_barre]+[self.mu - self.gamma*racine_sigma[:, i]
+                 for i in range(0,self.d)]+[self.mu_barre + self.gamma * racine_sigma[:, i] for i in range(0, self.d)]
+        print "points_sigma_barre", self.points_sigma_barre
+        self.y_etoile_barre = [self.h(self.points_sigma_barre[i]) for i in range(0, 2*self.d)]
+
+        self.y_chapeau = self.wm0*self.y_etoile_barre[0]
+        for i in range(1, 2*self.d):
+            self.y_chapeau += self.wm*self.y_etoile_barre[i]
         #Calcul de S
-        self.S = self.wc0*np.dot((self.y_etoile_barre[0] - self.y_chapeau), \
+        self.S = self.wc0*np.dot((self.y_etoile_barre[0] - self.y_chapeau),
                                  (self.y_etoile_barre[0] - self.y_chapeau).T)
         for i in range(1,2*self.d):
-            self.S += self.wm*np.dot((self.y_etoile_barre[i] - self.y_chapeau), \
+            self.S += self.wm*np.dot((self.y_etoile_barre[i] - self.y_chapeau),
                                 (self.y_etoile_barre[i] - self.y_chapeau).T)
+        print "S", self.S.shape
         self.S += self.R
         #calcul de SIGMA_z_y
-        self.SIGMA_z_y_barre = self.wc0*np.dot((self.z_etoile_barre[0] - self.mu_barre), \
+        self.SIGMA_z_y_barre = self.wc0*np.dot((self.z_etoile_barre[0] - self.mu_barre),
                                           (self.y_etoile_barre[0] - self.y_chapeau).T)
-        for i in range(1, 2*self.D):
-            self.SIGMA_z_y_barre += self.wm*np.dot((self.z_etoile_barre[i] - self.mu_barre), \
+        for i in range(1, 2*self.d):
+            self.SIGMA_z_y_barre += self.wm*np.dot((self.z_etoile_barre[i] - self.mu_barre),
                                               (self.y_etoile_barre[i] - self.y_chapeau).T)
-        self.K = np.dot(self.SIGMA_z_y_barre, scipy.linalg.linalg.inv(self.S))
+        self.K = np.dot(self.SIGMA_z_y_barre, scipy.linalg.inv(self.S))
+        print "K", self.K.shape, "y", y.shape
         #Les valeurs qui nous interessent
         self.mu = self.mu_barre + np.dot(self.K, (y - self.y_chapeau))
         self.SIGMA = self.SIGMA_barre - np.dot(np.dot(self.K, self.S), self.K.T)
@@ -171,8 +186,8 @@ class UnscentedKalman:
         """
         Pourquoi séparer les deux étapes? Je l'ignore
         """
-        self.premier_pas()
-        self.second_pas(y)
+        self.first_step()
+        self.second_step(y)
 
     def g(self, x, dim=4):
         """
@@ -184,14 +199,19 @@ class UnscentedKalman:
             F = np.matrix([[1., 0.], [0., 1.]])
         else: #dim == 4
             F = np.matrix([[1., 0., self.dt, 0.], [0., 1., 0., self.dt], [0., 0., 1., 0.], [0., 0., 0., 1.]])
-        #print F.shape, x.shape
-        return np.dot(F, x)
+        print F.shape, x.shape
+        res = np.dot(F, x)
+        print res.shape
+        return res
 
     def h(self, x):
         """
         La fonction renvoie les données comme si elles ont été mesurées.
         """
-        return np.array(self.Convertisseur.obtenir_mesures(x[0],x[1]))[:,np.newaxis]
+        print "x shape", x.shape
+        a = Convertisseur()
+
+        return np.asmatrix(a.obtenir_mesures(x[0],x[1])).T#[:,np.newaxis]
 
     def get_position(self):
         """
@@ -203,7 +223,7 @@ class UnscentedKalman:
 #classe à arranger pour le Kalman Unscented
 class FiltrageLaserUnscented:
     
-    def __init__(self, x0, dt=0.2, dime = 2):
+    def __init__(self, x0, dt=0.2, dime=4):
         """
         x0 est un array(x,y) ou array(x,y,x point, y point)
         """
@@ -213,12 +233,12 @@ class FiltrageLaserUnscented:
         #x = np.array([1400,100,0.,0.])[:, np.newaxis] # vecteur d'état au départ
         if dime == 2:
             SIGMA0 = np.matrix([[1., 0.], [0., 1.]])
-            R = np.matrix([[900, 0.], [0., 900]])
+            R = np.matrix([[90, 0., 0.], [0., 90, 0.], [0., 0., 90]])  #dimension de la matrice égale au nombre de dimensions des mesures !
             Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2], \
                        [self.dt**2/2., 0, 4*self.dt, 0],[0, self.dt**2/2, 0, 4*self.dt]])
         else:
             SIGMA0 = np.matrix([[30., 0., 0., 0.], [0., 30., 0., 0.], [0., 0., 10., 0.], [0., 0., 0., 10.]]) # incertitude initiale
-            R = np.matrix([[900, 0.], [0., 900]]) # incertitude sur la mesure
+            R = np.matrix([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])  #dimension de la matrice égale au nombre de dimensions des mesures !
             #Q = np.matrix([[self.dt**3/3., self.dt**2/2., 0, 0],[self.dt**2/2.,self.dt, 0, 0],
             #            [0,0,self.dt**3/3.,self.dt**2/2],[0,0,self.dt**2/2,self.dt]])
             #Q *= 20;
@@ -226,7 +246,7 @@ class FiltrageLaserUnscented:
                            [self.dt**2/2., 0, 4*self.dt, 0],[0, self.dt**2/2, 0, 4*self.dt]])
             #Q = np.matrix([[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 4, 0],[0, 0, 0, 4]])
             Q *= 30
-        d = 2
+        d = 4
         kappa = 1
         alpha = 0.5
         beta = 1
@@ -236,7 +256,7 @@ class FiltrageLaserUnscented:
         self.acceleration = None
         
     def etat_robot_adverse(self):
-        return self.ukf.x
+        return self.ukf.mu
         
     def update_dt(self, new_dt):
         """
@@ -515,16 +535,28 @@ def get_velocity(positions, dt):
     return velocities
 
 if __name__ == "__main__":
+    simu = Simulator(300,200)
     measures_pos = np.genfromtxt("mesures_25.txt", delimiter="\t")
     vite = get_velocity(measures_pos, 0.25)
-    print vite[:10,:]
-    measures = np.concatenate((measures_pos,vite), axis=1)
-    print measures[:10,:]
+    #print vite[:10, :]
+    measures = np.concatenate((measures_pos, vite), axis=1)
+    measures = np.asmatrix(measures)[:10, :]
+    print measures[:10, :]
     print measures.shape
     # indice = 10
     # print measures_pos.shape
     # var = 10
-    filtering = FiltrageLaserUnscented(measures[0, :], dt=0.25, dime=4)
+    filtering = FiltrageLaserUnscented(measures[0, :].T, dt=0.25, dime=4)
+    var = 1
     # #simu.add_noise_to_sensor_measures(x_reel, y_reel, var)
     for i in range(1, measures.shape[0]):
-        filtering.update(measures[i, :])
+        x = measures[i, 0]
+        y = measures[i, 1]
+        print "x et y", x, y
+        a = Convertisseur()
+        #filtering.update(np.asmatrix(a.obtenir_mesures(x,y)).T)
+        m1, m2, m3 = a.obtenir_mesures(x, y)
+        m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
+        filtering.update(np.asmatrix([m1, m2, m3]).T)
+    print "estimée", filtering.etat_robot_adverse()
+    print "vraie", measures[9, :].T

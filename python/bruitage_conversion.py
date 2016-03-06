@@ -35,10 +35,11 @@ class Convertisseur:
         """
         (x,y) sont les coordonnées du robot
         """
+
         d1 = sqrt((L/2.-x)**2+(l/2.-y)**2)
         d2 = sqrt((-L/2.-x)**2+(l-y)**2)
         d3 = sqrt((-x-L/2.)**2+y**2)
-        return (d1-d2, d1-d3, d2-d3)
+        return d1-d2, d1-d3, d2-d3
     
     def equation1_1_2(self, m1, m2):
         m1 = float(m1)
