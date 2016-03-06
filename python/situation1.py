@@ -93,7 +93,7 @@ class UnscentedKalman:
         SIGMA est la matrice de covariance initiale
         
         """
-        self.dt = 0.25
+        self.dt = dt
         self.d = d # c'est la dimension de l'espace cachée 
         self.alpha = float(alpha) #paramètre bizarre
         self.beta = float(beta)  #paramètre bizarre
@@ -107,11 +107,11 @@ class UnscentedKalman:
         self.R = R #matrice de covariance de la gaussienne de l'équation d'observation
 
         #calculs de coefficients
-        self.wm0 = self.lam /(self.d*self.lam)
+        self.wm0 = self.lam /(self.d+self.lam)
         self.wm = 1/(2.*(self.d+self.lam))  #wm = wc (wc non implémenté)
         self.wc0 = self.wm0+(1-self.alpha**2+self.beta)
 
-    def first_step(self):
+    def _first_step(self):
         """
         Estimation de mu_barre et de sigma_barre à partir de l'itération précédente
         """
@@ -147,7 +147,7 @@ class UnscentedKalman:
         print "SIGMA_barre", self.SIGMA_barre.shape
         self.SIGMA_barre += self.Q
 
-    def second_step(self, y):
+    def _second_step(self, y):
         """
         y est la mesure à l'instant t
         Estimation de mu et de sigma présent
@@ -177,17 +177,20 @@ class UnscentedKalman:
             self.SIGMA_z_y_barre += self.wm*np.dot((self.z_etoile_barre[i] - self.mu_barre),
                                               (self.y_etoile_barre[i] - self.y_chapeau).T)
         self.K = np.dot(self.SIGMA_z_y_barre, scipy.linalg.inv(self.S))
-        print "K", self.K.shape, "y", y.shape
+        #print "K", self.K.shape, "y", y.shape
         #Les valeurs qui nous interessent
         self.mu = self.mu_barre + np.dot(self.K, (y - self.y_chapeau))
         self.SIGMA = self.SIGMA_barre - np.dot(np.dot(self.K, self.S), self.K.T)
 
     def filter(self, y):
         """
-        Pourquoi séparer les deux étapes? Je l'ignore
+        On sépare les deux pas parce que l'un a besoin d'une mesure tandis que l'autre non
         """
-        self.first_step()
-        self.second_step(y)
+        self._first_step()
+        if y is None: #aucune mesure
+            self._second_step(self.mu) #pout l'instant, c'est une proposition, on pourra trouver mieux
+        else:
+            self._second_step(y)
 
     def g(self, x, dim=4):
         """
@@ -223,7 +226,7 @@ class UnscentedKalman:
 #classe à arranger pour le Kalman Unscented
 class FiltrageLaserUnscented:
     
-    def __init__(self, x0, dt=0.2, dime=4):
+    def __init__(self, x0, dt=0.25, dime=4):
         """
         x0 est un array(x,y) ou array(x,y,x point, y point)
         """
@@ -234,18 +237,18 @@ class FiltrageLaserUnscented:
         if dime == 2:
             SIGMA0 = np.matrix([[1., 0.], [0., 1.]])
             R = np.matrix([[90, 0., 0.], [0., 90, 0.], [0., 0., 90]])  #dimension de la matrice égale au nombre de dimensions des mesures !
-            Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2], \
+            Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2],
                        [self.dt**2/2., 0, 4*self.dt, 0],[0, self.dt**2/2, 0, 4*self.dt]])
         else:
-            SIGMA0 = np.matrix([[30., 0., 0., 0.], [0., 30., 0., 0.], [0., 0., 10., 0.], [0., 0., 0., 10.]]) # incertitude initiale
+            SIGMA0 = np.matrix([[0.1, 0., 0., 0.], [0., 0.1, 0., 0.], [0., 0., 0.01, 0.], [0., 0., 0., 0.01]]) # incertitude initiale
             R = np.matrix([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])  #dimension de la matrice égale au nombre de dimensions des mesures !
             #Q = np.matrix([[self.dt**3/3., self.dt**2/2., 0, 0],[self.dt**2/2.,self.dt, 0, 0],
             #            [0,0,self.dt**3/3.,self.dt**2/2],[0,0,self.dt**2/2,self.dt]])
             #Q *= 20;
-            Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2], \
+            Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2],
                            [self.dt**2/2., 0, 4*self.dt, 0],[0, self.dt**2/2, 0, 4*self.dt]])
             #Q = np.matrix([[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 4, 0],[0, 0, 0, 4]])
-            Q *= 30
+            Q *= 1
         d = 4
         kappa = 1
         alpha = 0.5
@@ -255,7 +258,7 @@ class FiltrageLaserUnscented:
         self.valeurs_rejetees = 0
         self.acceleration = None
         
-    def etat_robot_adverse(self):
+    def get_state_adverse_robot(self):
         return self.ukf.mu
         
     def update_dt(self, new_dt):
@@ -265,18 +268,18 @@ class FiltrageLaserUnscented:
         self.dt = new_dt
         self.ukf.F[0,2] = new_dt
         self.ukf.F[1,3] = new_dt
-    
-    def position(self):
-        #state = self.filtre_kalman.x
-        #return Point(int(state[0]), int(state[1]))
-        return self.last_point
-    
-    def vitesse(self):
-        state = self.ukf.x
-        return Vitesse(int(state[2]), int(state[3]))
+
+    def get_position_adverse_robot(self):
+        state = self.ukf.mu
+        return Point(float(state[0]), float(state[1]))
+
+    def get_velocity_adverse_robot(self):
+        state = self.ukf.mu
+        return Vitesse(float(state[2]), float(state[3]))
                 
     def update(self, y):
         """
+        Je ne sait pas si c'est vraiement utilse
         fonction qui est utilisé à chaque mesure
         y est un vecteur de mesure de dimension 4 : (x, y, x point, y point)
         """
@@ -558,5 +561,5 @@ if __name__ == "__main__":
         m1, m2, m3 = a.obtenir_mesures(x, y)
         m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
         filtering.update(np.asmatrix([m1, m2, m3]).T)
-    print "estimée", filtering.etat_robot_adverse()
+    print "estimée", filtering.get_position_adverse_robot()
     print "vraie", measures[9, :].T
