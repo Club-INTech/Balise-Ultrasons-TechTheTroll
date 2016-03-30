@@ -31,7 +31,9 @@ class Convertisseur:
                 print self.equation1_3_1(m3, m1)
                 print self.equation2_3_1(m3, m1)
                 print "-------------------"
-    def obtenir_mesures(self, x, y):   
+
+
+    def obtenir_mesures(self, x, y):
         """
         (x,y) sont les coordonnées du robot
         """

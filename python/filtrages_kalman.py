@@ -1,28 +1,31 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
-from bruitage_conversion import *
+from conversion_mesure_etat import *
 from math import sqrt
 import collections
 import scipy.linalg
+import generateur_chemin
 
+"""
 class Simulator:
     def __init__(self, sizeTableX, sizeTableY):
         self.convertisseur = Convertisseur()
-        self.sizeTableX = sizeTableX
-        self.sizeTableY = sizeTableY
+
     def add_noise_to_real_position(self, x_reel, y_reel, var):
         x_reel +=  np.random.randn()*var
         y_reel += np.random.randn()*var
         m1, m2, m3 = self.convertisseur.obtenir_mesures(x_reel, y_reel)
         return np.matrix([m1, m2, m3])
+
     def add_noise_to_sensor_measures(self, x_reel, y_reel, var):
         m1, m2, m3 = self.convertisseur.obtenir_mesures(x_reel, y_reel)
         m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
         return np.matrix([m1, m2, m3])
+
     def simuler1(self, x_reel, y_reel, var):
-        """
-        Cette simulation prend la position réelle, bruite les mesures et les convertit pour obtenir les positions possibles
-        """
+
+        # Cette simulation prend la position réelle, bruite les mesures et les convertit pour obtenir les positions possibles
+
         m1, m2, m3 = self.add_noise_to_sensor_measures(x_reel, y_reel, var)
         res = []
         res.append(self.convertisseur.equation1_1_2(m1, m2))
@@ -32,10 +35,11 @@ class Simulator:
         res.append(self.convertisseur.equation1_3_1(m3, m1))
         res.append(self.convertisseur.equation2_3_1(m3, m1))
         return res
-    def simuler1(self, x_reel, y_reel, var):
-        """
-        Cette simulation prend la position réelle, bruite les mesures et les convertit pour obtenir les positions possibles
-        """
+
+    def simuler2(self, x_reel, y_reel, var):
+
+        # Cette simulation prend la position réelle, bruite les mesures et les convertit pour obtenir les positions possibles
+
         m1, m2, m3 = self.convertisseur.obtenir_mesures(x_reel, y_reel)
         m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
         res = []
@@ -47,9 +51,9 @@ class Simulator:
         res.append(self.convertisseur.equation2_3_1(m3, m1))
         return res
     def simuler2(self, x_reel, y_reel, var):
-        """
-        Cette simulation prend la position réelle, convertit les mesures, et bruite les positions
-        """
+
+        #Cette simulation prend la position réelle, convertit les mesures, et bruite les positions
+
         m1, m2, m3 = self.convertisseur.obtenir_mesures(x_reel, y_reel)
         res = []
         res.append(self.convertisseur.equation1_1_2(m1, m2))
@@ -79,7 +83,7 @@ class Simulator:
             #Vérification si l'obstacle est sur la table
             if p_filtre.x > -self.sizeTableX/2 and p_filtre.y > 0 and p_filtre.x < self.sizeTableX/2 and p_filtre.y < self.sizeTableY:
                 print "sur la table"
-
+"""
 class UnscentedKalman:
     """
        Cette classe implémente l'algorithme du Filitrage de Kalman Unscented
@@ -118,8 +122,8 @@ class UnscentedKalman:
         #first Unscented transform
         #racine_sigma = scipy.linalg.sqrtm(self.SIGMA)
         racine_sigma = np.asmatrix(scipy.linalg.sqrtm(self.SIGMA))
-        print "racine carrée", racine_sigma
-        print "mu", self.mu#, "racine_sigma", racine_sigma.shape, racine_sigma[:, 1].shape
+        # print "racine carrée", racine_sigma
+        # print "mu", self.mu#, "racine_sigma", racine_sigma.shape, racine_sigma[:, 1].shape
         self.points_sigma = [self.mu]
         self.points_sigma.extend([self.mu - self.gamma*racine_sigma[:, i] for i in range(0, self.d)]) #de -1 à - self.d
         self.points_sigma.extend([self.mu + self.gamma * racine_sigma[:, i] for i in range(0, self.d)]) # de 1 à self.d
@@ -138,13 +142,13 @@ class UnscentedKalman:
             self.mu_barre += self.wm*self.z_etoile_barre[i]
         #calcul de SIGMA_barre
         #print "mu barre", self.mu_barre.shape
-        print "z_etoile_barre", len(self.z_etoile_barre), len(self.z_etoile_barre[0]), self.z_etoile_barre[0], self.mu_barre
+        # print "z_etoile_barre", len(self.z_etoile_barre), len(self.z_etoile_barre[0]), self.z_etoile_barre[0], self.mu_barre
         self.SIGMA_barre = self.wc0*np.dot((self.z_etoile_barre[0] - self.mu_barre),
                                                 (self.z_etoile_barre[0] - self.mu_barre).T)
         for i in range(1,2*self.d):
             self.SIGMA_barre += self.wm*np.dot((self.z_etoile_barre[i] - self.mu_barre),
                                                (self.z_etoile_barre[i] - self.mu_barre).T)
-        print "SIGMA_barre", self.SIGMA_barre.shape
+        # print "SIGMA_barre", self.SIGMA_barre.shape
         self.SIGMA_barre += self.Q
 
     def _second_step(self, y):
@@ -156,7 +160,7 @@ class UnscentedKalman:
         racine_sigma = np.asmatrix(scipy.linalg.sqrtm(self.SIGMA_barre))
         self.points_sigma_barre = [self.mu_barre]+[self.mu - self.gamma*racine_sigma[:, i]
                  for i in range(0,self.d)]+[self.mu_barre + self.gamma * racine_sigma[:, i] for i in range(0, self.d)]
-        print "points_sigma_barre", self.points_sigma_barre
+        # print "points_sigma_barre", self.points_sigma_barre
         self.y_etoile_barre = [self.h(self.points_sigma_barre[i]) for i in range(0, 2*self.d)]
 
         self.y_chapeau = self.wm0*self.y_etoile_barre[0]
@@ -168,7 +172,7 @@ class UnscentedKalman:
         for i in range(1,2*self.d):
             self.S += self.wm*np.dot((self.y_etoile_barre[i] - self.y_chapeau),
                                 (self.y_etoile_barre[i] - self.y_chapeau).T)
-        print "S", self.S.shape
+        # print "S", self.S.shape
         self.S += self.R
         #calcul de SIGMA_z_y
         self.SIGMA_z_y_barre = self.wc0*np.dot((self.z_etoile_barre[0] - self.mu_barre),
@@ -202,16 +206,16 @@ class UnscentedKalman:
             F = np.matrix([[1., 0.], [0., 1.]])
         else: #dim == 4
             F = np.matrix([[1., 0., self.dt, 0.], [0., 1., 0., self.dt], [0., 0., 1., 0.], [0., 0., 0., 1.]])
-        print F.shape, x.shape
+        # print F.shape, x.shape
         res = np.dot(F, x)
-        print res.shape
+        # print res.shape
         return res
 
     def h(self, x):
         """
         La fonction renvoie les données comme si elles ont été mesurées.
         """
-        print "x shape", x.shape
+        # print "x shape", x.shape
         a = Convertisseur()
 
         return np.asmatrix(a.obtenir_mesures(x[0],x[1])).T#[:,np.newaxis]
@@ -290,9 +294,10 @@ class FiltrageLaserUnscented:
         pos_filtre = self.ukf.get_position()
         #    self.filtre_kalman.measurement(np.array([x,y])[:, np.newaxis])
         self.historique.append(self.ukf.get_position())
-        print y, pos_filtre[0], pos_filtre[1]
+        # print y, pos_filtre[0], pos_filtre[1]
         #else:
         #    self.last_point = None
+        return pos_filtre
         #    self.filtre_kalman.prediction()
         
     def _filtrage_acceleration(self, pointm0):
@@ -537,8 +542,13 @@ def get_velocity(positions, dt):
         velocities[i, :] = (positions[i, :] - positions[i-1, :])/float(dt)
     return velocities
 
-if __name__ == "__main__":
-    simu = Simulator(300,200)
+
+def erreur_quadratique(measures, filtered_values):
+    diff = measures[:, :2] - filtered_values[:, :2]
+    diff.T.dot(diff)
+
+def script_vraies_mesures():
+    # simu = Simulator(300,200)
     measures_pos = np.genfromtxt("mesures_25.txt", delimiter="\t")
     vite = get_velocity(measures_pos, 0.25)
     #print vite[:10, :]
@@ -563,3 +573,44 @@ if __name__ == "__main__":
         filtering.update(np.asmatrix([m1, m2, m3]).T)
     print "estimée", filtering.get_position_adverse_robot()
     print "vraie", measures[9, :].T
+
+
+def script_trajectoire_1():
+    print "trajectoire"
+    l_points = [[-1000., 200.], [-1000., 800.], [-400., 1200.], [500., 500.], [1100., 180.]]
+    dt = 0.25
+
+    measures_pos = np.array(generateur_chemin.generate_path(l_points=l_points, velocity_translation=25,
+                                                            velocity_rotation=0.7, dt=dt))
+    print "mesures", measures_pos.shape
+    print "créée"
+    vite = get_velocity(measures_pos, dt)
+    #print vite[:10, :]
+    measures = np.concatenate((measures_pos, vite), axis=1)
+    measures = np.asmatrix(measures)
+    l_pos_filtre = [measures_pos[0, :]]
+    #print measures[:10, :]
+    print measures.shape
+    # indice = 10
+    # print measures_pos.shape
+    # var = 10
+    filtering = FiltrageLaserUnscented(measures[0, :].T, dt=dt, dime=4)
+    var = 0.1
+    # #simu.add_noise_to_sensor_measures(x_reel, y_reel, var)
+    for i in range(1, measures.shape[0]):
+        x = measures[i, 0]
+        y = measures[i, 1]
+        # print "x et y", x, y, "i" ,i
+        a = Convertisseur()
+        #filtering.update(np.asmatrix(a.obtenir_mesures(x,y)).T)
+        m1, m2, m3 = a.obtenir_mesures(x, y)
+        m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
+        l_pos_filtre.append(filtering.update(np.asmatrix([m1, m2, m3]).T))
+    print "estimée", filtering.get_position_adverse_robot()
+    print "vraie", measures[measures.shape[0]-1, :]
+    print erreur_quadratique(measures, np.asmatrix(np.array(l_pos_filtre)))
+
+
+if __name__ == "__main__":
+    # script_vraies_mesures()
+    script_trajectoire_1()
