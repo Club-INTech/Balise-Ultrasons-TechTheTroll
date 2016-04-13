@@ -86,6 +86,8 @@ class Simulator:
             if p_filtre.x > -self.sizeTableX/2 and p_filtre.y > 0 and p_filtre.x < self.sizeTableX/2 and p_filtre.y < self.sizeTableY:
                 print "sur la table"
 """
+
+
 class UnscentedKalman:
     """
        Cette classe implémente l'algorithme du Filitrage de Kalman Unscented
@@ -101,57 +103,57 @@ class UnscentedKalman:
         """
         self.dt = dt
         self.d = d # c'est la dimension de l'espace cachée 
-        self.alpha = float(alpha) #paramètre bizarre
-        self.beta = float(beta)  #paramètre bizarre
-        self.kappa = kappa  #paramètre bizarre
-        self.mu = mu0 #position initiale
-        self.SIGMA = SIGMA0 #variance initiale
-        self.lam = alpha**2*(d+kappa) - d # un paramètre un peu étrange aussi
-        self.gamma = sqrt(d+self.lam) #à nouveau bizarre !
+        self.alpha = float(alpha) # paramètre bizarre
+        self.beta = float(beta)  # paramètre bizarre
+        self.kappa = kappa  # paramètre bizarre
+        self.mu = mu0  # position initiale
+        self.SIGMA = SIGMA0  #variance initiale
+        self.lam = alpha**2*(d+kappa) - d  # un paramètre un peu étrange aussi
+        self.gamma = d+self.lam  # à nouveau bizarre !
         self.Q = Q # matrice de covariance de la gaussienne de l'équation d'évolution
-        self.R = R #matrice de covariance de la gaussienne de l'équation d'observation
+        self.R = R  # matrice de covariance de la gaussienne de l'équation d'observation
 
         #calculs de coefficients
         self.wm0 = float(self.lam) /(self.d+self.lam)
-        self.wm = 1/(2.*(self.d+self.lam))  #wm = wc (wc non implémenté)
+        self.wm = 1/(2.*(self.d+self.lam))  # wm = wc (wc non implémenté)
         self.wc0 = self.wm0+(1-self.alpha**2+self.beta)
-        print self.SIGMA
-
 
     def _first_step(self):
         """
         Estimation de mu_barre et de sigma_barre à partir de l'itération précédente
         """
-        #first Unscented transform
-        racine_sigma = np.asmatrix(scipy.linalg.sqrtm(self.SIGMA))
+        # first Unscented transform
+        racine_sigma = np.asmatrix(scipy.linalg.sqrtm(self.gamma*self.SIGMA))
 
         # print "racine carrée", racine_sigma
-        # print "mu", self.mu#, "racine_sigma", racine_sigma.shape, racine_sigma[:, 1].shape
-
+        # print "mu", self.mu, "racine_sigma", racine_sigma.shape, racine_sigma[:, 1].shape
+        # print "self.mu - self.gamma*racine_sigma[:, i]", self.mu - self.gamma*racine_sigma[:, 1]
         self.points_sigma = [self.mu]
-        self.points_sigma.extend([self.mu - self.gamma*racine_sigma[:, i] for i in range(0, self.d)]) #de -1 à - self.d
-        self.points_sigma.extend([self.mu + self.gamma * racine_sigma[:, i] for i in range(0, self.d)]) # de 1 à self.d
+        self.points_sigma.extend([self.mu - racine_sigma[:, i] for i in range(0, self.d)]) #de -1 à - self.d
+        self.points_sigma.extend([self.mu + racine_sigma[:, i] for i in range(0, self.d)]) # de 1 à self.d
 
-        #print "self.points_sigma", len(self.points_sigma), np.array(self.points_sigma).shape
-        #self.points_sigma = np.array(self.points_sigma)
-        #self.z_etoile_barre = np.array([self.g(self.points_sigma[i]).reshape((4,)) for i in range(0, 2*self.d)])
+        # print "self.points_sigma", len(self.points_sigma), np.array(self.points_sigma).shape
+        # self.points_sigma = np.array(self.points_sigma)
+        # self.z_etoile_barre = np.array([self.g(self.points_sigma[i]).reshape((4,)) for i in range(0, 2*self.d)])
 
-        self.z_etoile_barre = []  #np.asmatrix(np.zeros(self.points_sigma.shape))
+        self.z_etoile_barre = []  # np.asmatrix(np.zeros(self.points_sigma.shape))
         # print len(self.points_sigma)
         for i in range(len(self.points_sigma)):
             self.z_etoile_barre.append(self.g(self.points_sigma[i]))
-            #self.z_etoile_barre[i,:] = self.g(self.points_sigma[i])
+            # self.z_etoile_barre[i,:] = self.g(self.points_sigma[i])
 
         self.mu_barre = self.wm0*self.z_etoile_barre[0]
 
-        #print "mu_barre", self.mu_barre.shape
-
+        # print "mu_barre", self.mu_barre.shape
+        # print self.mu_barre
+        # print self.z_etoile_barre[2]
+        # print self.wm
         for i in range(1, len(self.z_etoile_barre)):
             #print "self.wm*self.z_etoile_barre[i]", (self.wm*self.z_etoile_barre[i]).shape
             self.mu_barre += self.wm*self.z_etoile_barre[i]
 
-        #calcul de SIGMA_barre
-        #print "mu barre", self.mu_barre.shape
+        # calcul de SIGMA_barre
+        # print "mu barre", self.mu_barre.shape
         # print "z_etoile_barre", len(self.z_etoile_barre), len(self.z_etoile_barre[0]), self.z_etoile_barre[0], self.mu_barre
         self.SIGMA_barre = self.wc0*np.dot((self.z_etoile_barre[0] - self.mu_barre),
                                                 (self.z_etoile_barre[0] - self.mu_barre).T)
@@ -408,7 +410,6 @@ class Kalman:
         self.x = self.x + np.dot(K, y)
         self.P = np.dot((np.identity(self.x.shape[0]) - np.dot(K, self.H)), self.P)
 
-
     def filter(self, mes, u=None):
         """
         Méthode qui condense une étape du filtrage
@@ -562,7 +563,6 @@ def get_mer(real, estimated):
     #     print len(estimated)
 
 
-
 def squared_error(real_values, filtered_values):
     """
     Renvoie l'erreur quadratique moyenne !
@@ -581,6 +581,7 @@ def script_unscented_with_real_measures():
     Script utilisant le filtre de Kalman unscented avec des mesures réelles !
     :return:
     """
+    print "script_unscented_with_real_measures"
     measures_pos = np.genfromtxt("mesures_25.txt", delimiter="\t")
     real_path = []
     for i in range(1, measures_pos.shape[0]):
@@ -589,23 +590,20 @@ def script_unscented_with_real_measures():
         real_path.append(Point(x, y))
     vite = get_velocity(measures_pos, 0.025)
     measures = np.concatenate((measures_pos, vite), axis=1)
+    measures = np.asmatrix(measures)
     filtering = UnscentedKalmanFilter(measures[0, :].T, dt=0.025, dime=4)
     var = 10
     l_pos_filter = []
     for i in range(1, measures.shape[0]):
         x = measures[i, 0]
         y = measures[i, 1]
-        print "x et y", x, y
+        # print "x et y", x, y
         conv = Converter()
         m1, m2, m3 = conv.get_measures_from_state(x, y)
         m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
         filtering.update(np.asmatrix([m1, m2, m3]).T)
         pos = filtering.get_state_position()
         l_pos_filter.append(pos)
-    print "estimée", filtering.get_state_position()
-    print "vraie", measures[measures.shape[0]-1, :]
-    # print erreur_quadratique(measures, np.asmatrix(np.array(l_pos_filtre)))
-    print len(real_path), len(l_pos_filter), measures.shape[0]
     print get_mer(real_path, l_pos_filter)
 
 
@@ -614,8 +612,8 @@ def script_classic_trajectory_with_real_measures():
     Script utilisant le filtre de Kalman  avec des mesures réelles !
     :return:
     """
+    print "script_classic_trajectory_with_real_measures"
     dt=0.025
-    print "trajectoire"
     measures_pos = np.genfromtxt("mesures_25.txt", delimiter="\t")
     real_path = []
     for i in range(measures_pos.shape[0]):
@@ -624,12 +622,9 @@ def script_classic_trajectory_with_real_measures():
         real_path.append(Point(x, y))
 
     l_pos_filtre = [real_path[0]]
-    print "mesures", measures_pos.shape
-    print "créée"
     vite = get_velocity(measures_pos, dt)
     measures = np.concatenate((measures_pos, vite), axis=1)
     measures = np.asmatrix(measures)
-    print measures.shape
     filtering = FiltrageKalman(measures[0, :].T, dt=dt)
     var = 10
     for i in range(1, measures.shape[0]):
@@ -640,9 +635,6 @@ def script_classic_trajectory_with_real_measures():
         filtering.update(x_bruite, y_bruite)
         pos = filtering.get_current_position()
         l_pos_filtre.append(pos)
-    print "bruitée", x_bruite, y_bruite
-    print "estimée", filtering.get_current_state()
-    print "vraie", measures[measures.shape[0]-1, :]
     # print erreur_quadratique(measures, np.asmatrix(np.array(l_pos_filtre)))
     print get_mer(real_path, l_pos_filtre)
 
@@ -652,20 +644,22 @@ def script_classic_trajectory():
     Script utilisant le filtre de Kalman  avec des mesures simulées à partir d'une trajectoire inventée !
     :return:
     """
-    print "trajectoire"
+    print "script_classic_trajectory"
     l_points = [[-1000., 200.], [-1000., 800.], [-400., 1200.], [500., 500.], [1100., 180.]]
     dt = 0.025
     real_path = generateur_chemin.generate_path(l_points=l_points, velocity_translation=25,
                                                             velocity_rotation=0.7, dt=dt)
     measures_pos = np.array(real_path)
-    x, y = real_path[0]
-    l_pos_filtre = [Point(x, y)]
-    print "mesures", measures_pos.shape
-    print "créée"
+    real_path_point = []
+    for couple in real_path:
+        x, y = couple
+        pos = Point(x, y)
+        real_path_point.append(pos)
+
+    l_pos_filtre = [real_path_point[0]]
     vite = get_velocity(measures_pos, dt)
     measures = np.concatenate((measures_pos, vite), axis=1)
     measures = np.asmatrix(measures)
-    print measures.shape
     filtering = FiltrageKalman(measures[0, :].T, dt=dt)
     var = 10
     for i in range(1, measures.shape[0]):
@@ -676,11 +670,7 @@ def script_classic_trajectory():
         filtering.update(x_bruite, y_bruite)
         pos = filtering.get_current_position()
         l_pos_filtre.append(pos)
-    print "bruitée", x_bruite, y_bruite
-    print "estimée", filtering.get_current_position()
-    print "vraie", measures[measures.shape[0]-1, :]
-    # print erreur_quadratique(measures, np.asmatrix(np.array(l_pos_filtre)))
-    print get_mer(real_path, l_pos_filtre)
+    print get_mer(real_path_point, l_pos_filtre)
 
 
 def script_unscented_trajectory():
@@ -688,80 +678,63 @@ def script_unscented_trajectory():
     Script utilisant le filtre de Kalman unscented avec des mesures simulées à partir d'une trajectoire inventée !
     :return:
     """
-    print "trajectoire"
+    print "script_unscented_trajectory"
     l_points = [[-1000., 200.], [-1000., 800.], [-400., 1200.], [500., 500.], [1100., 180.]]
     dt = 0.025
     real_path = generateur_chemin.generate_path(l_points=l_points, velocity_translation=25,
                                                             velocity_rotation=0.7, dt=dt)
-    x, y = real_path[0]
-    l_pos_filter = [Point(x, y)]
     measures_pos = np.array(real_path)
-
-    print "mesures", measures_pos.shape
-    print "créée"
+    real_path_point = []
+    for couple in real_path:
+        x, y = couple
+        pos = Point(x, y)
+        real_path_point.append(pos)
+    l_pos_filter = [real_path_point[0]]
     vite = get_velocity(measures_pos, dt)
-    measures_pos = np.concatenate((measures_pos, vite), axis=1)
-    measures_pos = np.asmatrix(measures_pos)
-
-    filtering = UnscentedKalmanFilter(measures_pos[0l, :].T, dt=dt, dime=4)
+    measures = np.concatenate((measures_pos, vite), axis=1)
+    measures = np.asmatrix(measures)
+    filtering = UnscentedKalmanFilter(measures[0, :].T, dt=dt, dime=4)
     var = 10
-    for i in range(1, measures_pos.shape[0]):
-        x = measures_pos[i, 0]
-        y = measures_pos[i, 1]
-        # print "x et y", x, y, "i", i
+    for i in range(1, measures.shape[0]):
+        x = measures[i, 0]
+        y = measures[i, 1]
         conv = Converter()
         m1, m2, m3 = conv.get_measures_from_state(x, y)
         m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
         filtering.update(np.asmatrix([m1, m2, m3]).T)
         l_pos_filter.append(filtering.get_state_position())
-    print "estimée", filtering.get_state_position()
-    print "vraie", measures_pos[measures_pos.shape[0]-1, :]
-    # print erreur_quadratique(measures, np.asmatrix(np.array(l_pos_filtre)))
-    print get_mer(real_path, l_pos_filter)
+    print get_mer(real_path_point, l_pos_filter)
 
 
 def script_unscented_with_fake_ultrasound_measures():
+    print "script_unscented_with_fake_ultrasound_measures"
     dt = 0.025
-    print "trajectoire"
     measures_pos = np.genfromtxt("mesures_25.txt", delimiter="\t")
     real_path = []
     for i in range(1, measures_pos.shape[0]):
         x = measures_pos[i, 0]
         y = measures_pos[i, 1]
         real_path.append(Point(x, y))
-    print measures_pos[0, :].shape
-    print measures_pos[0, :]
     l_pos_filter = [Point(measures_pos[0, :][0], measures_pos[0, :][1])]
     vite = get_velocity(measures_pos, dt)
     measures_pos = np.concatenate((measures_pos, vite), axis=1)
     measures_pos = np.asmatrix(measures_pos)
-
     measures_us = np.genfromtxt("mesures_25_sigma10.txt", delimiter=",")
-
-
-    print "mesures", measures_pos.shape
-    print "créée", measures_us.shape
     filtering = UnscentedKalmanFilter(measures_pos[0, :].T, dt=dt)
     # var = 10
     for i in range(1, measures_us.shape[0]):
-        # print measures_us[i, :].shape
         m1 = measures_us[i, 0]
         m2 = measures_us[i, 1]
         m3 = measures_us[i, 2]
-        # print "x et y", x, y, "i" ,i
         filtering.update(np.asmatrix([m1, m2, m3]).T)
         pos = filtering.get_state_position()
         l_pos_filter.append(pos)
-    # print "bruitée", x_bruite, y_bruite
-    print "estimée", filtering.get_state_position()
-    print "vraie", measures_pos[measures_pos.shape[0]-1, :]
-    # print erreur_quadratique(measures, np.asmatrix(np.array(l_pos_filtre)))
     print get_mer(real_path, l_pos_filter)
 
 
 if __name__ == "__main__":
-    # script_unscented_with_real_measures()
-    # script_unscented_trajectory()
+    script_unscented_with_real_measures()
+    script_unscented_trajectory()
     script_classic_trajectory()
-    # script_classic_trajectory_with_real_measures()
-    # script_unscented_with_fake_ultrasound_measures()
+    script_classic_trajectory_with_real_measures()
+    script_unscented_with_fake_ultrasound_measures()
