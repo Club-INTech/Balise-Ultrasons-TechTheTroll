@@ -93,7 +93,7 @@ class UnscentedKalman:
        Cette classe implémente l'algorithme du Filitrage de Kalman Unscented
     Source : Machine Learning a probabilistic perspective p. 651-652
     """
-    def __init__(self, mu0, SIGMA0, Q, R, d, alpha=2., beta=2., kappa=0., dt=0.25):
+    def __init__(self, mu0, SIGMA0, Q, R, d, alpha, beta, kappa, dt):
         """
         g est la fonction qui associe la position en t à la position en t+1
         h est la fonction qui associe la position réelle aux mesures correspondantes
@@ -129,8 +129,8 @@ class UnscentedKalman:
         # print "mu", self.mu, "racine_sigma", racine_sigma.shape, racine_sigma[:, 1].shape
         # print "self.mu - self.gamma*racine_sigma[:, i]", self.mu - self.gamma*racine_sigma[:, 1]
         self.points_sigma = [self.mu]
-        self.points_sigma.extend([self.mu - racine_sigma[:, i] for i in range(0, self.d)]) #de -1 à - self.d
-        self.points_sigma.extend([self.mu + racine_sigma[:, i] for i in range(0, self.d)]) # de 1 à self.d
+        self.points_sigma.extend([self.mu - racine_sigma[:, i] for i in range(0, self.d)])  # de -1 à - self.d
+        self.points_sigma.extend([self.mu + racine_sigma[:, i] for i in range(0, self.d)])  # de 1 à self.d
 
         # print "self.points_sigma", len(self.points_sigma), np.array(self.points_sigma).shape
         # self.points_sigma = np.array(self.points_sigma)
@@ -149,14 +149,14 @@ class UnscentedKalman:
         # print self.z_etoile_barre[2]
         # print self.wm
         for i in range(1, len(self.z_etoile_barre)):
-            #print "self.wm*self.z_etoile_barre[i]", (self.wm*self.z_etoile_barre[i]).shape
+            # print "self.wm*self.z_etoile_barre[i]", (self.wm*self.z_etoile_barre[i]).shape
             self.mu_barre += self.wm*self.z_etoile_barre[i]
 
         # calcul de SIGMA_barre
         # print "mu barre", self.mu_barre.shape
         # print "z_etoile_barre", len(self.z_etoile_barre), len(self.z_etoile_barre[0]), self.z_etoile_barre[0], self.mu_barre
         self.SIGMA_barre = self.wc0*np.dot((self.z_etoile_barre[0] - self.mu_barre),
-                                                (self.z_etoile_barre[0] - self.mu_barre).T)
+                                           (self.z_etoile_barre[0] - self.mu_barre).T)
         for i in range(1, len(self.z_etoile_barre)):
             self.SIGMA_barre += self.wm*np.dot((self.z_etoile_barre[i] - self.mu_barre),
                                                (self.z_etoile_barre[i] - self.mu_barre).T)
@@ -170,8 +170,9 @@ class UnscentedKalman:
         """
         #second unscented transform
         racine_sigma_barre = np.asmatrix(scipy.linalg.sqrtm(self.SIGMA_barre))
-        self.points_sigma_barre = [self.mu_barre]+[self.mu_barre - self.gamma*racine_sigma_barre[:, i]
-                 for i in range(0, self.d)]+[self.mu_barre + self.gamma * racine_sigma_barre[:, i] for i in range(0, self.d)]
+        self.points_sigma_barre = [self.mu_barre] + \
+                                  [self.mu_barre-sqrt(self.gamma)*racine_sigma_barre[:, i] for i in range(0, self.d)] +\
+                                  [self.mu_barre+sqrt(self.gamma)*racine_sigma_barre[:, i] for i in range(0, self.d)]
         # print "points_sigma_barre", self.points_sigma_barre
         self.y_etoile_barre = [self.h(self.points_sigma_barre[i]) for i in range(0, len(self.points_sigma_barre))]
 
@@ -179,23 +180,23 @@ class UnscentedKalman:
         for i in range(1, len(self.y_etoile_barre)):
             self.y_chapeau += self.wm*self.y_etoile_barre[i]
         #Calcul de S
-        self.S = self.wc0*np.dot((self.y_etoile_barre[0] - self.y_chapeau),
+        self.S = self.wc0*np.dot(self.y_etoile_barre[0] - self.y_chapeau,
                                  (self.y_etoile_barre[0] - self.y_chapeau).T)
         for i in range(1, len(self.y_etoile_barre)):
-            self.S += self.wm*np.dot((self.y_etoile_barre[i] - self.y_chapeau),
-                                (self.y_etoile_barre[i] - self.y_chapeau).T)
+            self.S += self.wm*np.dot(self.y_etoile_barre[i] - self.y_chapeau,
+                                     (self.y_etoile_barre[i] - self.y_chapeau).T)
         # print "S", self.S.shape
         self.S += self.R
         #calcul de SIGMA_z_y
         self.SIGMA_z_y_barre = self.wc0*np.dot((self.z_etoile_barre[0] - self.mu_barre),
                                           (self.y_etoile_barre[0] - self.y_chapeau).T)
         for i in range(1, len(self.z_etoile_barre)):
-            self.SIGMA_z_y_barre += self.wm*np.dot((self.z_etoile_barre[i] - self.mu_barre),
+            self.SIGMA_z_y_barre += self.wm*np.dot(self.z_etoile_barre[i] - self.mu_barre,
                                               (self.y_etoile_barre[i] - self.y_chapeau).T)
         self.K = np.dot(self.SIGMA_z_y_barre, scipy.linalg.inv(self.S))
         #print "K", self.K.shape, "y", y.shape
         #Les valeurs qui nous interessent
-        self.mu = self.mu_barre + np.dot(self.K, (y - self.y_chapeau))
+        self.mu = self.mu_barre + np.dot(self.K, y - self.y_chapeau)
         self.SIGMA = self.SIGMA_barre - np.dot(np.dot(self.K, self.S), self.K.T)
 
     def filter(self, y):
@@ -232,9 +233,7 @@ class UnscentedKalman:
         """
         # print "x shape", x.shape
         conv = Converter()
-        measures = conv.get_measures_from_state(x[0],x[1])
-
-
+        measures = conv.get_measures_from_state(x[0], x[1])
         return np.asmatrix(measures).T#[:,np.newaxis]
 
     def get_state(self):
@@ -247,37 +246,40 @@ class UnscentedKalman:
 #classe à arranger pour le Kalman Unscented
 class UnscentedKalmanFilter:
     
-    def __init__(self, x0, dt=0.025, dime=4):
+    def __init__(self, x0, dt, dime=4):
         """
         x0 est un array(x,y) ou array(x,y,x point, y point)
         """
         self.dt = dt
         #x = np.array(x).T
         mu0 = x0
-        #x = np.array([1400,100,0.,0.])[:, np.newaxis] # vecteur d'état au départ
-        if dime == 2:
-            SIGMA0 = np.matrix([[1., 0.], [0., 1.]])
-            R = np.matrix([[90, 0., 0.], [0., 90, 0.], [0., 0., 90]])  #dimension de la matrice égale au nombre de dimensions des mesures !
-            Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2],
-                       [self.dt**2/2., 0, 4*self.dt, 0],[0, self.dt**2/2, 0, 4*self.dt]])
-        else:
-            SIGMA0 = np.matrix([[0.1, 0., 0., 0.], [0., 0.1, 0., 0.], [0., 0., 0.01, 0.], [0., 0., 0., 0.01]]) # incertitude initiale
-            R = np.matrix([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])  #dimension de la matrice égale au nombre de dimensions des mesures !
-            R *= 0.01
-            #Q = np.matrix([[self.dt**3/3., self.dt**2/2., 0, 0],[self.dt**2/2.,self.dt, 0, 0],
-            #            [0,0,self.dt**3/3.,self.dt**2/2],[0,0,self.dt**2/2,self.dt]])
-            #Q *= 20;
-            Q = np.matrix([[1., 0, 0, 0],[0, 1, 0, 0],
-                           [0, 0, 1, 0],[0, 0, 0, 1]])
-            # Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2],
-            #                [self.dt**2/2., 0, 4*self.dt, 0],[0, self.dt**2/2, 0, 4*self.dt]])
-            #Q = np.matrix([[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 4, 0],[0, 0, 0, 4]])
-            Q *= 0.1
-        d = 4
+        d = 2
         kappa = 1
         alpha = 0.5
         beta = 1
-        self.ukf = UnscentedKalman(mu0, SIGMA0, Q, R, d, alpha=alpha, beta=beta, kappa=kappa)
+        #x = np.array([1400,100,0.,0.])[:, np.newaxis] # vecteur d'état au départ
+        if dime == 2:
+            SIGMA0 = np.matrix([[0.001, 0.], [0., 0.001]])
+            R = np.matrix([[90, 0., 0.], [0., 90, 0.], [0., 0., 90]])  #dimension de la matrice égale au nombre de dimensions des mesures !
+            Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2],
+                          [self.dt**2/2., 0, 4*self.dt, 0], [0, self.dt**2/2, 0, 4*self.dt]])
+        else:
+            SIGMA0 = np.matrix([[1., 0., 0., 0.], [0., 1., 0., 0.], [0., 0., 1., 0.], [0., 0., 0., 1.]]) # incertitude initiale
+            SIGMA0 *= 0.001
+            R = np.matrix([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])  #dimension de la matrice égale au nombre de dimensions des mesures !
+            R *= 0.0001
+
+            #Q = np.matrix([[self.dt**3/3., self.dt**2/2., 0, 0],[self.dt**2/2.,self.dt, 0, 0],
+            #            [0,0,self.dt**3/3.,self.dt**2/2],[0,0,self.dt**2/2,self.dt]])
+            #Q *= 20;
+            # Q = np.matrix([[1., 0, 0, 0],[0, 1, 0, 0],
+            #                [0, 0, 1, 0],[0, 0, 0, 1]])
+            Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2],
+                           [self.dt**2/2., 0, 4*self.dt, 0], [0, self.dt**2/2, 0, 4*self.dt]])
+            #Q = np.matrix([[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 4, 0],[0, 0, 0, 4]])
+            Q *= 1
+
+        self.ukf = UnscentedKalman(mu0, SIGMA0, Q, R, d, alpha=alpha, beta=beta, kappa=kappa, dt=dt)
         self.historique = collections.deque(maxlen=3)
         self.valeurs_rejetees = 0
         self.acceleration = None
@@ -681,8 +683,8 @@ def script_unscented_trajectory():
     print "script_unscented_trajectory"
     l_points = [[-1000., 200.], [-1000., 800.], [-400., 1200.], [500., 500.], [1100., 180.]]
     dt = 0.025
-    real_path = generateur_chemin.generate_path(l_points=l_points, velocity_translation=25,
-                                                            velocity_rotation=0.7, dt=dt)
+    real_path = generateur_chemin.generate_path(l_points=l_points, velocity_translation=50,
+                                                            velocity_rotation=0.5, dt=dt)
     measures_pos = np.array(real_path)
     real_path_point = []
     for couple in real_path:
@@ -735,6 +737,6 @@ def script_unscented_with_fake_ultrasound_measures():
 if __name__ == "__main__":
     script_unscented_with_real_measures()
     script_unscented_trajectory()
-    script_classic_trajectory()
-    script_classic_trajectory_with_real_measures()
+    # script_classic_trajectory()
+    # script_classic_trajectory_with_real_measures()
     script_unscented_with_fake_ultrasound_measures()
