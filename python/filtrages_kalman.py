@@ -88,6 +88,193 @@ class Simulator:
 """
 
 
+class IvanKalman:
+    """
+       Cette classe implémente l'algorithme du Filitrage de Kalman Unscented
+    Source : Machine Learning a probabilistic perspective p. 651-652
+    """
+    def __init__(self, mu0, SIGMA0, si, dt, phi, d=2):
+        """
+        g est la fonction qui associe la position en t à la position en t+1
+        h est la fonction qui associe la position réelle aux mesures correspondantes
+        mu0 est la position initiale du robot
+        SIGMA est la matrice de covariance initiale
+
+        """
+        self.dt = dt
+        self.si = si
+        self.phi = phi
+        self.d = d # c'est la dimension de l'espace cachée
+        self.mu = mu0  # position initiale
+        self.sigma = SIGMA0  #variance initiale
+        self.gamma = np.sqrt(1-phi**2)  # à nouveau bizarre !
+
+    def _first_step(self, mesure):
+        self.d = 2
+        self.mu_entre = self.phi * self.mu
+        self.sigma_entre = self.phi**2*self.sigma+self.gamma **2
+        self.ksi = []
+        racine_sigma = np.asmatrix(scipy.linalg.sqrtm(self.sigma_entre))
+
+        # print "racine carrée", racine_sigma
+        # print "mu", self.mu, "racine_sigma", racine_sigma.shape, racine_sigma[:, 1].shape
+        # print "self.mu - self.gamma*racine_sigma[:, i]", self.mu - self.gamma*racine_sigma[:, 1]
+        self.points_sigma = [self.mu_entre]
+        self.points_sigma.extend([self.mu_entre - racine_sigma[:, i] for i in range(0, self.d)])  # de -1 à - self.d
+        self.points_sigma.extend([self.mu_entre + racine_sigma[:, i] for i in range(0, self.d)])  # de 1 à self.d
+        self.S = []
+        for sigma_point in self.points_sigma:
+            transformation = self.h(sigma_point)
+            self.S.append(np.dot(transformation, transformation.T))
+        self.S = np.sum(self.S)
+        self.S *= 1./(1+2*self.d)
+        self.S += self.si*np.eye(3)
+        self.K = 1./(1+2*self.d) * np.sum([np.dot(np.dot(sigma_point, self.h(sigma_point)), scipy.linalg.inv(self.S)) for sigma_point in self.points_sigma])
+        self.mu_prochain = self.mu_entre + self.K * ( mesure - np.mean(self.points_sigma))
+        self.sigma_prochain = self.sigma_entre - 1/5. * np.sum([np.dot(np.dot(self.K, sigma_point), self.h(sigma_point)) for sigma_point in self.points_sigma])
+        self.mu = self.mu_prochain
+        self.sigma = self.sigma_prochain
+
+    def filter(self, y):
+        """
+        On sépare les deux pas parce que l'un a besoin d'une mesure tandis que l'autre non
+        :param y: c'est la mesure provenant du capteur
+        """
+
+        if y is None:  # aucune mesure
+            self._first_step(self.h(self.mu))
+        else:
+            self._first_step(y)
+
+    def g(self, x, dim=4):
+        """
+        Pour notre modélisation, on choisit comme vecteur x = [abscisse de la position,
+        ordonnée de la position] ou [abscisse de la position,
+        ordonnée de la position, abscisse de la vitesse, ordonnées de la vitesse]
+        """
+        if dim == 2:
+            F = np.matrix([[1., 0.], [0., 1.]])
+        elif dim == 3:
+            F = np.matrix([[1., 0, 0], [0., 1., 0.], [0., 0., 1.]])
+        else: #dim == 4
+            F = np.matrix([[1., 0., self.dt, 0.], [0., 1., 0., self.dt], [0., 0., 1., 0.], [0., 0., 0., 1.]])
+        # print F.shape, x.shape
+        res = np.dot(F, x)
+        # print res.shape
+        return res
+
+    def h(self, x):
+        """
+        La fonction renvoie les données comme si elles ont été mesurées.
+        """
+        # print "x shape", x.shape
+        conv = Converter()
+        measures = conv.get_measures_from_state(x[0], x[1])
+        return np.asmatrix(measures).T#[:,np.newaxis]
+
+    def get_state(self):
+        """
+        self.mu est la position moyenne
+        """
+        return self.mu
+
+
+class IvanFilter:
+
+    def __init__(self, x0, dt, dime=4):
+        """
+        x0 est un array(x,y) ou array(x,y,x point, y point)
+        """
+        self.dt = dt
+        #x = np.array(x).T
+        mu0 = x0
+        d = 2
+        #x = np.array([1400,100,0.,0.])[:, np.newaxis] # vecteur d'état au départ
+        SIGMA0 = np.matrix([[1, 0.], [0., 1]])
+        si = 10
+        phi = 0.98
+        self.ukf = IvanKalman(mu0, SIGMA0, si, dt, phi, d=d)
+        self.historique = collections.deque(maxlen=3)
+        self.valeurs_rejetees = 0
+        self.acceleration = None
+
+    def get_state(self):
+        """
+
+        :return: the state of the robot
+        """
+        return self.ukf.mu
+
+    def get_state_position(self):
+        """
+
+        :return: a Point
+        """
+        state = self.ukf.mu
+        # print state
+        return Point(float(state[0]), float(state[1]))
+
+    def get_state_velocity(self):
+        """
+
+        :return: a Velocity
+        """
+        state = self.ukf.mu
+        return Velocity(float(state[2]), float(state[3]))
+
+    def update(self, y):
+        """
+        Je ne sait pas si c'est vraiement utilse
+        fonction qui est utilisé à chaque mesure
+        y est un vecteur de mesure de dimension 4 : (x, y, x point, y point)
+        """
+
+        #if self._filtrage_acceleration(Point(x, y)):
+        #    self.last_point = Point(x, y)
+        self.ukf.filter(y)
+        pos_filtre = self.ukf.get_state()
+        #    self.filtre_kalman.measurement(np.array([x,y])[:, np.newaxis])
+        self.historique.append(self.ukf.get_state())
+        # print y, pos_filtre[0], pos_filtre[1]
+        #else:
+        #    self.last_point = None
+        return pos_filtre
+        #    self.filtre_kalman.prediction()
+
+    def _acceleration_filtering(self, pointm0):
+        """
+        Vérifie si le point est cohérent avec la position actuelle, en basant sur l'accélération
+        """
+        # Pas suffisamment de valeurs précédentes pour calculer l'accélération
+        if len(self.historique) != 3:
+            return True
+
+        # 3 derniers points valides
+        pointm1 = self.historique[2]
+        pointm2 = self.historique[1]
+        pointm3 = self.historique[0]
+
+        # Vecteurs vitesses et accélération
+        vitesse_actuelle = pointm0 - pointm1
+        vitesse_m1 = pointm1 - pointm2
+        vitesse_m2 = pointm2 - pointm3
+        acceleration_actuelle = vitesse_actuelle - vitesse_m1
+        acceleration_precedente = vitesse_m1 - vitesse_m2
+        jerk = acceleration_actuelle - acceleration_precedente
+
+        # Produit scalaire pour savoir s'il y a accélération ou décélération
+        produit = acceleration_actuelle.x * vitesse_m1.x + acceleration_actuelle.y * vitesse_m1.y
+
+        # Rejette les accélérations brutales
+        if acceleration_actuelle.norme() / self.dt**2 > 50000 and self.valeurs_rejetees < 3:
+            #~ print("accélération = {0}, produit = {1}, jerk = {2}".format(acceleration_actuelle.norme() / self.dt**2, produit, jerk.norme() / self.dt**3))
+            self.valeurs_rejetees += 1
+            return False
+        else:
+            self.valeurs_rejetees = 0
+            return True
+
+
 class UnscentedKalman:
     """
        Cette classe implémente l'algorithme du Filitrage de Kalman Unscented
@@ -265,9 +452,9 @@ class UnscentedKalmanFilter:
                           [self.dt**2/2., 0, 4*self.dt, 0], [0, self.dt**2/2, 0, 4*self.dt]])
         else:
             SIGMA0 = np.matrix([[1., 0., 0., 0.], [0., 1., 0., 0.], [0., 0., 1., 0.], [0., 0., 0., 1.]]) # incertitude initiale
-            SIGMA0 *= 0.001
+            SIGMA0 *= 10000
             R = np.matrix([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])  #dimension de la matrice égale au nombre de dimensions des mesures !
-            R *= 0.0001
+            R *= 40000
 
             #Q = np.matrix([[self.dt**3/3., self.dt**2/2., 0, 0],[self.dt**2/2.,self.dt, 0, 0],
             #            [0,0,self.dt**3/3.,self.dt**2/2],[0,0,self.dt**2/2,self.dt]])
@@ -277,7 +464,7 @@ class UnscentedKalmanFilter:
             Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2],
                            [self.dt**2/2., 0, 4*self.dt, 0], [0, self.dt**2/2, 0, 4*self.dt]])
             #Q = np.matrix([[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 4, 0],[0, 0, 0, 4]])
-            Q *= 1
+            Q *= 100
 
         self.ukf = UnscentedKalman(mu0, SIGMA0, Q, R, d, alpha=alpha, beta=beta, kappa=kappa, dt=dt)
         self.historique = collections.deque(maxlen=3)
@@ -553,6 +740,8 @@ def get_mer(real, estimated):
     :return:
     """
     try:
+        for i in range(len(real)):
+            print "réel ", real[i], " estimé ", estimated[i]
         res = [real[i].distance(estimated[i]) for i in range(len(real))]
         print "La moyenne des distances entre les estimations et la réalité est : "
         return sum(res)/float(len(res))
@@ -733,10 +922,44 @@ def script_unscented_with_fake_ultrasound_measures():
         l_pos_filter.append(pos)
     print get_mer(real_path, l_pos_filter)
 
+def script_unscented_ivan():
+    dt = 0.025
+    measures_pos = np.genfromtxt("mesures_25.txt", delimiter="\t")
+    real_path = []
+    for i in range(1, measures_pos.shape[0]):
+        x = measures_pos[i, 0]
+        y = measures_pos[i, 1]
+        real_path.append(Point(x, y))
+    l_pos_filter = [Point(measures_pos[0, :][0], measures_pos[0, :][1])]
+    vite = get_velocity(measures_pos, dt)
+    measures_pos = np.concatenate((measures_pos, vite), axis=1)
+    measures_pos = np.asmatrix(measures_pos)
+    measures_us = np.genfromtxt("mesures_25_sigma10.txt", delimiter=",")
+    filtering = UnscentedKalmanFilter(measures_pos[0, :].T, dt=dt)
+    # var = 10
+    for i in range(1, measures_us.shape[0]):
+        m1 = measures_us[i, 0]
+        m2 = measures_us[i, 1]
+        m3 = measures_us[i, 2]
+        filtering.update(np.asmatrix([m1, m2, m3]).T)
+        pos = filtering.get_state_position()
+        l_pos_filter.append(pos)
+    print get_mer(real_path, l_pos_filter)
 
 if __name__ == "__main__":
     script_unscented_with_real_measures()
+    print """
+
+
+
+    """
     script_unscented_trajectory()
+    print """
+
+
+
+
+    """
     # script_classic_trajectory()
     # script_classic_trajectory_with_real_measures()
-    script_unscented_with_fake_ultrasound_measures()
+    # script_unscented_with_fake_ultrasound_measures()
