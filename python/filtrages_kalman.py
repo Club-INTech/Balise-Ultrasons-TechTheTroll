@@ -106,44 +106,51 @@ class IvanKalman:
         self.si = si
         self.phi = phi
         self.d = d # c'est la dimension de l'espace cachée
-        print "mu0", mu0
+        # print "mu0", mu0
         self.mu = mu0  # position initialle
         self.sigma = SIGMA0  #variance initiale
         self.gamma = np.sqrt(1-phi**2)  # à nouveau bizarre !
+        # print 1./(1+2*self.d)
 
     def _first_step(self, mesure):
         self.d = 2
         self.mu_entre = self.phi * self.mu
-        self.sigma_entre = self.phi**2*self.sigma+self.gamma **2
-        self.ksi = []
+        self.sigma_entre = self.phi**2*self.sigma+self.gamma ** 2
         racine_sigma = np.asmatrix(scipy.linalg.sqrtm(self.sigma_entre))
 
-        # print "racine carrée", racine_sigma
+        print "racine carrée", racine_sigma
         # print "mu", self.mu, "racine_sigma", racine_sigma.shape, racine_sigma[:, 1].shape
         # print "self.mu - self.gamma*racine_sigma[:, i]", self.mu - self.gamma*racine_sigma[:, 1]
         self.points_sigma = [self.mu_entre]
         self.points_sigma.extend([self.mu_entre - racine_sigma[:, i] for i in range(0, self.d)])  # de -1 à - self.d
         self.points_sigma.extend([self.mu_entre + racine_sigma[:, i] for i in range(0, self.d)])  # de 1 à self.d
-        print self.points_sigma
-        self.S = 0
+
+        self.S = np.asmatrix(np.zeros((3, 3)))
         for sigma_point in self.points_sigma:
-            print sigma_point
+            # print sigma_point.shape
             transformation = self.hm(sigma_point)
             self.S += np.dot(transformation, transformation.T)
+        print "S", self.S
 
         self.S *= 1./(1+2*self.d)
-        self.S += self.si*np.eye(3)
+        self.S += self.si**2*np.asmatrix(np.eye(3))
         # print self.S.shape
         # print "sigma_point", sigma_point[0].shape, self.hm(sigma_point)).shape,
-        self.K = 0
+        self.K = np.asmatrix(np.zeros((2, 3)))
         for sigma_point in self.points_sigma:
             # print sigma_point.shape
             self.K += np.dot(np.dot(sigma_point, self.hm(sigma_point).T), scipy.linalg.inv(self.S))
         self.K *= 1./(1+2*self.d)
-        print self.K.shape, mesure.shape, self.hm(self.points_sigma[0]).shape,
-        self.mu_prochain = self.mu_entre + self.K * (mesure - 1./(1+2*self.d)*np.sum([self.hm(sigma_point) for sigma_point in self.points_sigma]))
-        self.sigma_prochain = 0
-        print self.K.shape, self.hm(sigma_point).shape, self.points_sigma[0].T.shape
+        # print self.K.shape, mesure.shape, self.hm(self.points_sigma[0]).shape,
+
+        h_sum = np.asmatrix(np.zeros((3, 1)))
+        for sigma_point in self.points_sigma:
+            h_sum += self.hm(sigma_point)
+        print h_sum
+        print "mesures", mesure, 1./(1+2*self.d)*h_sum
+        self.mu_prochain = self.mu_entre + np.dot(self.K,  (mesure - 1./(1+2*self.d)*h_sum))
+        self.sigma_prochain = np.asmatrix(np.zeros((2, 2)))
+        # print self.K.shape, self.hm(sigma_point).shape, self.points_sigma[0].T.shape
         for sigma_point in self.points_sigma:
             self.sigma_prochain += np.dot(np.dot(self.K, self.hm(sigma_point)), sigma_point.T)
         self.sigma_prochain = self.sigma_entre - 1./(1+2*self.d) * self.sigma_prochain
@@ -157,8 +164,9 @@ class IvanKalman:
         """
 
         if y is None:  # aucune mesure
-            self._first_step(self.h(self.mu))
+            self._first_step(self.hm(self.mu))
         else:
+            print "mesure !"
             self._first_step(y)
 
     def h(self, x):
@@ -172,7 +180,10 @@ class IvanKalman:
 
     def m(self, gauss_x):
         # print gauss_x
-        # print gauss_x.shape
+        print gauss_x.shape
+        print gauss_x
+        # print gauss_x[0, 0]
+        # print gauss_x[1, 0]
         x = -1500 + 3000 * norm.cdf(gauss_x[0, 0])
         y = 2000 * norm.cdf(gauss_x[1, 0])
         return np.matrix([[x], [y]])
@@ -194,17 +205,17 @@ class IvanFilter:
         x0 est un array(x,y) ou array(x,y,x point, y point)
         """
         self.dt = dt
-        # x0 = np.array(self.real_position_to_abstract(x0))
-        x0 = np.array([0, 0])
+        x0 = np.array(self.real_position_to_abstract(x0))
+        # x0 = np.array([0, 0])
         mu0 = np.asmatrix(x0)
         mu0 = mu0.T
-        print "mu", mu0
+        # print "mu", mu0
 
         d = 2
         #x = np.array([1400,100,0.,0.])[:, np.newaxis] # vecteur d'état au départ
         SIGMA0 = np.matrix([[1, 0.], [0., 1]])
-        si = 10
-        phi = 0.98
+        si = 0.01
+        phi = 0.99
         self.ukf = IvanKalman(mu0, SIGMA0, si, dt, phi, d=d)
         self.historique = collections.deque(maxlen=3)
         self.valeurs_rejetees = 0
@@ -218,7 +229,6 @@ class IvanFilter:
         """
         return [norm.ppf((p0[0] + 1500) / 3000.), norm.ppf(p0[1] / 2000.)]
 
-
     def abstract_position_to_real(self, x0):
         """
 
@@ -226,7 +236,6 @@ class IvanFilter:
         :return:
         """
         return [norm.cdf(x0[0])*3000 - 1500, norm.cdf(x0[1]) * 2000.]
-
 
     def get_state(self):
         """
@@ -322,7 +331,7 @@ class UnscentedKalman:
         
         """
         self.dt = dt
-        self.d = d # c'est la dimension de l'espace cachée 
+        self.d = d  # c'est la dimension de l'espace cachée
         self.alpha = float(alpha) # paramètre bizarre
         self.beta = float(beta)  # paramètre bizarre
         self.kappa = kappa  # paramètre bizarre
@@ -470,7 +479,7 @@ class UnscentedKalman:
 #classe à arranger pour le Kalman Unscented
 class UnscentedKalmanFilter:
     
-    def __init__(self, x0, dt, dime=2):
+    def __init__(self, x0, dt, coeff_s, coeff_q, coeff_r, dime=2):
         """
         x0 est un array(x,y) ou array(x,y,x point, y point)
         """
@@ -479,8 +488,9 @@ class UnscentedKalmanFilter:
         mu0 = x0
         d = 2
         kappa = 1
-        alpha = 1
-        beta = 0
+        alpha = 0.6
+        beta = 0.2
+
         #x = np.array([1400,100,0.,0.])[:, np.newaxis] # vecteur d'état au départ
         # if dime == 2:
         #     SIGMA0 = np.matrix([[0.001, 0.], [0., 0.001]])
@@ -490,10 +500,10 @@ class UnscentedKalmanFilter:
         # else:
         # SIGMA0 = np.matrix([[1., 0., 0., 0.], [0., 1., 0., 0.], [0., 0., 1., 0.], [0., 0., 0., 1.]]) # incertitude initiale
         SIGMA0 = np.eye(2)
-        SIGMA0 *= 100
+        SIGMA0 *= coeff_s
         R = np.eye(3)
         # R = np.matrix([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])  #dimension de la matrice égale au nombre de dimensions des mesures !
-        R *= 100
+        R *= coeff_r
 
         #Q = np.matrix([[self.dt**3/3., self.dt**2/2., 0, 0],[self.dt**2/2.,self.dt, 0, 0],
         #            [0,0,self.dt**3/3.,self.dt**2/2],[0,0,self.dt**2/2,self.dt]])
@@ -504,7 +514,7 @@ class UnscentedKalmanFilter:
         # Q = np.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2],
         #                [self.dt**2/2., 0, 4*self.dt, 0], [0, self.dt**2/2, 0, 4*self.dt]])
         #Q = np.matrix([[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 4, 0],[0, 0, 0, 4]])
-        Q *= (1-0.98**2)*0.01
+        Q *= coeff_q # (1-0.98**2)
 
         self.ukf = UnscentedKalman(mu0, SIGMA0, Q, R, d, alpha=alpha, beta=beta, kappa=kappa, dt=dt)
         self.historique = collections.deque(maxlen=3)
@@ -780,10 +790,10 @@ def get_mer(real, estimated):
     :return:
     """
     try:
-        for i in range(len(real)):
-            print "réel ", real[i], " estimé ", estimated[i]
+        # for i in range(len(real)):
+            # print "réel ", real[i], " estimé ", estimated[i]
         res = [real[i].distance(estimated[i]) for i in range(len(real))]
-        print "La moyenne des distances entre les estimations et la réalité est : "
+        # print "La moyenne des distances entre les estimations et la réalité est : "
         return sum(res)/float(len(res))
     except ValueError:
         print real[i]
@@ -819,24 +829,29 @@ def script_unscented_with_real_measures():
         x = measures_pos[i, 0]
         y = measures_pos[i, 1]
         real_path.append(Point(x, y))
-    vite = get_velocity(measures_pos, 0.025)
-    measures = np.concatenate((measures_pos, vite), axis=1)
-    measures = np.asmatrix(measures)
-    filtering = UnscentedKalmanFilter(measures[0, :].T, dt=0.025, dime=4)
-    var = 10
-    l_pos_filter = []
-    for i in range(1, measures.shape[0]):
-        x = measures[i, 0]
-        y = measures[i, 1]
-        # print "x et y", x, y
-        conv = Converter()
-        m1, m2, m3 = conv.get_measures_from_state(x, y)
-        m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
-        filtering.update(np.asmatrix([m1, m2, m3]).T)
-        pos = filtering.get_state_position()
-        l_pos_filter.append(pos)
-    print get_mer(real_path, l_pos_filter)
-
+    # vite = get_velocity(measures_pos, 0.025)
+    # measures = np.concatenate((measures_pos, vite), axis=1)
+    measures = np.asmatrix(measures_pos)
+    fichier = open("mesures_simulees_10.txt", "w")
+    for coeff_s in range(0, 20, 1):
+        for coeff_q in range(0, 20, 1):
+            for coeff_r in range(1, 20, 1):
+                filtering = UnscentedKalmanFilter(measures[0, :].T, dt=0.025, coeff_s=10**-(coeff_s-10),
+                                                  coeff_q=10**-(coeff_q-10), coeff_r=10**-(coeff_r-10), dime=4)
+                var = 10
+                l_pos_filter = []
+                for i in range(1, measures.shape[0]):
+                    x = measures[i, 0]
+                    y = measures[i, 1]
+                    # print "x et y", x, y
+                    conv = Converter()
+                    m1, m2, m3 = conv.get_measures_from_state(x, y)
+                    m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
+                    filtering.update(np.asmatrix([m1, m2, m3]).T)
+                    pos = filtering.get_state_position()
+                    l_pos_filter.append(pos)
+                fichier.write(str(get_mer(real_path, l_pos_filter))+"\t"+str(10**-(coeff_s-10))+"\t"+str(10**-(coeff_q-10))+"\t"+str(10**-(coeff_r-10))+"\n")
+    fichier.close()
 
 def script_classic_trajectory_with_real_measures():
     """
@@ -962,6 +977,7 @@ def script_unscented_with_fake_ultrasound_measures():
         l_pos_filter.append(pos)
     print get_mer(real_path, l_pos_filter)
 
+
 def script_unscented_ivan():
     dt = 0.025
     measures_pos = np.genfromtxt("mesures_25.txt", delimiter="\t")
@@ -984,12 +1000,83 @@ def script_unscented_ivan():
         m3 = measures_us[i, 2]
         filtering.update(np.asmatrix([m1, m2, m3]).T)
         pos = filtering.get_state_position()
-        print pos
+        print "pos", pos
         l_pos_filter.append(pos)
     print get_mer(real_path, l_pos_filter)
 
+
+def script_random_unscented_ivan():
+    dt = 0.025
+    measures_pos = np.genfromtxt("mesures_25.txt", delimiter="\t")
+    real_path = []
+    for i in range(1, measures_pos.shape[0]):
+        x = measures_pos[i, 0]
+        y = measures_pos[i, 1]
+        real_path.append(Point(x, y))
+    l_pos_filter = [Point(measures_pos[0, :][0], measures_pos[0, :][1])]
+    # vite = get_velocity(measures_pos, dt)
+    # measures_pos = np.concatenate((measures_pos, vite), axis=1)
+    measures_pos = np.asmatrix(measures_pos)
+    measures_us = np.genfromtxt("mesures_25_sigma10.txt", delimiter=",")
+    print measures_pos[0, :].T
+    filtering = IvanFilter(measures_pos[0, :].T, dt=dt)
+    # var = 10
+    # for i in range(1, measures_us.shape[0]):
+    #     m1 = measures_us[i, 0]
+    #     m2 = measures_us[i, 1]
+    #     m3 = measures_us[i, 2]
+    #     filtering.update(np.asmatrix([m1, m2, m3]).T)
+    #     pos = filtering.get_state_position()
+    #     print "pos", pos
+    #     l_pos_filter.append(pos)
+    var = 0.01
+    for i in range(1, measures_pos.shape[0]):
+        x = measures_pos[i, 0]
+        y = measures_pos[i, 1]
+        print 'x', x, 'y', y
+        conv = Converter()
+        m1, m2, m3 = conv.get_measures_from_state(x, y)
+        m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
+        print m1, m2, m3
+        filtering.update(np.asmatrix([m1, m2, m3]).T)
+        l_pos_filter.append(filtering.get_state_position())
+
+    print get_mer(real_path, l_pos_filter)
+
+
+def script_random_trajectory_unscented_ivan():
+    dt = 0.025
+    print "script_unscented_trajectory"
+    l_points = [[-1000., 200.], [-1000., 800.], [-400., 1200.], [500., 500.], [1100., 180.]]
+    real_path = generateur_chemin.generate_path(l_points=l_points, velocity_translation=50,
+                                                            velocity_rotation=0.5, dt=dt)
+    measures_pos = np.array(real_path)
+    real_path_point = []
+    for couple in real_path:
+        x, y = couple
+        pos = Point(x, y)
+        real_path_point.append(pos)
+    l_pos_filter = [real_path_point[0]]
+    measures_pos = np.asmatrix(measures_pos)
+    print measures_pos[0, :].T
+    filtering = IvanFilter(measures_pos[0, :].T, dt=dt)
+    var = 0.01
+    for i in range(1, measures_pos.shape[0]):
+        x = measures_pos[i, 0]
+        y = measures_pos[i, 1]
+        print 'x', x, 'y', y
+        conv = Converter()
+        m1, m2, m3 = conv.get_measures_from_state(x, y)
+        m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
+        print m1, m2, m3
+        filtering.update(np.asmatrix([m1, m2, m3]).T)
+        l_pos_filter.append(filtering.get_state_position())
+
+    print get_mer(real_path, l_pos_filter)
+
+
 if __name__ == "__main__":
-    # script_unscented_with_real_measures()
+    script_unscented_with_real_measures()
     # print """
     #
     #
@@ -1005,4 +1092,6 @@ if __name__ == "__main__":
     # script_classic_trajectory()
     # script_classic_trajectory_with_real_measures()
     # script_unscented_with_fake_ultrasound_measures()
-    script_unscented_ivan()
+    # script_unscented_ivan()
+    # script_random_unscented_ivan()
+    # script_random_trajectory_unscented_ivan()
