@@ -14,13 +14,14 @@
 
 
 
-\title{Repérage d'un système à ultrason et filtrage}
+\title{Repérage grâce à un système de balise à ultrason et filtrage}
 \author{Clément Besnier}
 %\setlength{\textwidth}{500pt}
 %\date{}
 \begin{document}
 
 \maketitle
+\tableofcontents
 \section{Introduction}
 
 Chaque année a lieu la coupe de France de robotique. Durant cette compétition, deux robots évoluent sur une table de deux mètres sur trois en 90 secondes pour obtenir un maximum de points. La table étant partagée en même temps par deux robots, il est nécessaire d'éviter le robot adverse pour des raisons de sécurité et pour des raisons stratégiques. C'est la raison même d'un tel système de balisage.
@@ -53,41 +54,87 @@ PE émet à intervalle régulier un signal particulier. Soient $ t_{1}, t_{2}, t
 		\end{split}
 \end{equation}
 
-, il faut juste multiplier les différences de dates par la vitesse du son dans l'air dans des conditions normales. Les mesures $m_{1}, m_{2},  m_{3}$ permettent de retrouver (x,y) en résolvant le système. Vous pouvez trouver en annexe les équations (pas belles) 
+, il faut juste multiplier les différences de dates par la vitesse du son dans l'air dans des conditions normales. Les mesures $m_{1}, m_{2},  m_{3}$ permettent de retrouver (x,y) en résolvant le système. Vous pouvez trouver en annexe les équations (pas belles). Mais ce n'est pas comme ça qu'on va en réalité trouver ce qu'on veut.
 
 
 \section{Modélisation et Simulation}
 
-Avant de pouvoir faire des mesures sur le robot, on simule les mesures en ajoutant un bruit gaussien aux $ m_{1}, m_{2},  m_{3}$.
+%Avant de pouvoir faire des mesures sur le robot, on simule les mesures en ajoutant un bruit gaussien aux $ m_{1}, m_{2},  m_{3}$.
+Soit $X_t$, la position du robot à l'instant t.
+\begin{equation}
+	\begin{split}\label{3}
+		X_t  &= \begin{pmatrix}
+			x_t  \\
+			y_t 
+		\end{pmatrix}\\
+	\end{split}
+\end{equation}
+Soit $Y_t$ la mesure prise à l'instant t.
+\begin{equation} \label{4}
+	\begin{split}
+	Y_t &= \begin{pmatrix}
+			m_1  \\
+			m_2  \\
+			m_3
+		\end{pmatrix}\\
+	\end{split}
+\end{equation}
+Soit h la fonction qui à une position (x, y) associe la différence de distance entre cette position etles balises suivant le schéma suivant : 
+\begin{equation}
+	\begin{split}\label{5}
+		h(x, y)  &= 
+		\begin{pmatrix}
+				d((x,y),PR1) - d((x,y),PR2)\\
+				d((x,y),PR1) - d((x,y),PR3)\\
+				d((x,y),PR2) - d((x,y),PR3)
+		\end{pmatrix}\\
+	\end{split}
+\end{equation}
+On considère les $Y_t$ ainsi parce que c'est plus clair de raisonner avec des distances qu'avec des différences de temps. On notera les valeurs estimées avec un accent circonflexe sur la lettre, les valeurs simulées avec un tilde.
+Soit E([$t_1$, $t_2$], PAS) une liste dont les éléments dont les multiples de $t_1$ compris entre $t_1$ et $t_2$. On considèrera dans la suite que l'unité de ses éléments est en seconde. 
+[$t_1$, $t_2$] sera [0, 90] parce qu'un match dure 90 s. Le pas n'est pas encore décidé, cela dépendra des ressources disponibles du robot. On prendra pour l'exemple PAS = 0.025 s.
+
+\begin{algorithm}[H]
+		
+		\KwData{$C = [(x_t, y_t), t \in E([0, 90], 0.025)]$ le chemin, $\sigma^2$ la variance }
+		\KwResult{$MB = [(m_1(t), m_2(t), m_3(t)]$}
+		\ForAll{($x_t$, $y_t$) $\in$ C}
+		{$m_1$, $m_2$, $m_3$ = h($x_t$, $y_t$) \\
+		$\tilde{m_1}$, $\tilde{m_2}$, $\tilde{m_3}$ = {$m_1$} + $\mathcal{N}$(0, $\sigma^2$), {$m_2$} + $\mathcal{N}$(0, $\sigma^2$), {$m_3$} + $\mathcal{N}$(0, $\sigma^2$)\\
+		Ajouter ($\tilde{m_1}$, $\tilde{m_2}$, $\tilde{m_3}$) à MB
+		}
+		
+	\caption{Simulation du bruitage de mesures.}
+	\end{algorithm}
 
 \section{Filtrage}
 
-Pour chaque modèle, on essayera un filtre de Kalman classique et un filtre  de Kalman unscented. Le filtre de Kalman étendu n'est pas adapté à la situation puisque la relation entre les mesures et l'état du robot (la position et la vitesse du robot) est non continue (et donc non dérivable) sur certaines parties de la table. JUSTIFIER ICI.
+Pour ce modèle, on essaiera un filtre de Kalman classique et un filtre  de Kalman unscented.
 
-Algorithme de Kalman
-\begin{algorithm}[H]
-		
-		\KwData{$tag(w_{i}) = t_{i}$ et $tag(w_{i+1}) = t_{i+1} C(t_{i},t_{i+1}) = \{(w_i,w_{i+1})| T(w_i) = t_i~et~T(w_{i+1}) = t_{i+1} \}, w_{1:N}$}
-		\KwResult{$q_{i}(w_{i},w_{i+1}) i \in \{1 .. N-1\}$}
-		\eIf{$(w_{i},w_{i+1}) \in C(t_{i},t_{i+1}) $}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i},w_{i+1})$\;}{
-		\eIf{$w_{i} \in C(t_{i},t_{i+1})$ et $w_{i+1} \in C(t_{i},t_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i}) * p(t_{i},t_{i+1},w_{i+1})$}{
-		\eIf{$w_{i} \in C(t_{i},t_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i})$}{
-		\eIf{$w_{i+1} \in C(t_{i},t_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1})$}}}}
-	\caption{Détermination de $q_i$ pour $i \in \{1..N-1\}$}
-	\end{algorithm}
-	
-Algorithme de Kalman Unscented
-\begin{algorithm}[H]
-		
-		\KwData{$tag(w_{i}) = t_{i}$ et $tag(w_{i+1}) = t_{i+1} C(t_{i},t_{i+1}) = \{(w_i,w_{i+1})| T(w_i) = t_i~et~T(w_{i+1}) = t_{i+1} \}, w_{1:N}$}
-		\KwResult{$q_{i}(w_{i},w_{i+1}) i \in \{1 .. N-1\}$}
-		\eIf{$(w_{i},w_{i+1}) \in C(t_{i},t_{i+1}) $}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i},w_{i+1})$\;}{
-		\eIf{$w_{i} \in C(t_{i},t_{i+1})$ et $w_{i+1} \in C(t_{i},t_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i}) * p(t_{i},t_{i+1},w_{i+1})$}{
-		\eIf{$w_{i} \in C(t_{i},t_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i})$}{
-		\eIf{$w_{i+1} \in C(t_{i},t_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1})$}}}}
-	\caption{Détermination de $q_i$ pour $i \in \{1..N-1\}$}
-	\end{algorithm}
-
+%Algorithme de Kalman
+%\begin{algorithm}[H]
+%		
+%		\KwData{$tag(w_{i}) = t_{i}$ et $tag(w_{i+1}) = t_{i+1} C(t_{i},t_{i+1}) = \{(w_i,w_{i+1})| T(w_i) = t_i~et~T(w_{i+1}) = t_{i+1} \}, w_{1:N}$}
+%		\KwResult{$q_{i}(w_{i},w_{i+1}) i \in \{1 .. N-1\}$}
+%		\eIf{$(w_{i},w_{i+1}) \in C(t_{i},t_{i+1}) $}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i},w_{i+1})$}{
+%		\eIf{$w_{i} \in C(t_{i},t_{i+1})$ et $w_{i+1} \in C(t_{i},t_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i}) * p(t_{i},t_{i+1},w_{i+1})$}{
+%		\eIf{$w_{i} \in C(t_{i},t_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i})$}{
+%		\eIf{$w_{i+1} \in C(t_{i},t_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1})$}}}}
+%	\caption{Détermination de $q_i$ pour $i \in \{1..N-1\}$}
+%	\end{algorithm}
+%	
+%Algorithme de Kalman Unscented
+%\begin{algorithm}[H]
+%		
+%		\KwData{$tag(w_{i}) = t_{i}$ et $tag(w_{i+1}) = t_{i+1} C(t_{i},t_{i+1}) = \{(w_i,w_{i+1})| T(w_i) = t_i~et~T(w_{i+1}) = t_{i+1} \}, w_{1:N}$}
+%		\KwResult{$q_{i}(w_{i},w_{i+1}) i \in \{1 .. N-1\}$}
+%		\eIf{$(w_{i},w_{i+1}) \in C(t_{i},t_{i+1}) $}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i},w_{i+1})$\;}{
+%		\eIf{$w_{i} \in C(t_{i},t_{i+1})$ et $w_{i+1} \in C(t_{i},t_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i}) * p(t_{i},t_{i+1},w_{i+1})$}{
+%		\eIf{$w_{i} \in C(t_{i},t_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i})$}{
+%		\eIf{$w_{i+1} \in C(t_{i},t_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1})$}}}}
+%	\caption{Détermination de $q_i$ pour $i \in \{1..N-1\}$}
+%	\end{algorithm}
+%
 
 
 

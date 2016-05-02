@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import pickle
 
 from conversion_mesure_etat import *
 from math import sqrt
@@ -316,7 +317,6 @@ class IvanFilter:
             return True
 
 
-
 class UnscentedKalman:
     """
        Cette classe implémente l'algorithme du Filitrage de Kalman Unscented
@@ -476,10 +476,10 @@ class UnscentedKalman:
         return self.mu
 
 
-#classe à arranger pour le Kalman Unscented
+# classe à arranger pour le Kalman Unscented
 class UnscentedKalmanFilter:
     
-    def __init__(self, x0, dt, coeff_s, coeff_q, coeff_r, dime=2):
+    def __init__(self, x0, dt, coeff_s=100, coeff_q=0.00001, coeff_r=0.1, dime=2):
         """
         x0 est un array(x,y) ou array(x,y,x point, y point)
         """
@@ -487,11 +487,12 @@ class UnscentedKalmanFilter:
         #x = np.array(x).T
         mu0 = x0
         d = 2
-        kappa = 1
-        alpha = 0.6
-        beta = 0.2
+        kappa = 2
+        alpha = 1
+        beta = 0
 
-        #x = np.array([1400,100,0.,0.])[:, np.newaxis] # vecteur d'état au départ
+
+        # x = np.array([1400,100,0.,0.])[:, np.newaxis] # vecteur d'état au départ
         # if dime == 2:
         #     SIGMA0 = np.matrix([[0.001, 0.], [0., 0.001]])
         #     R = np.matrix([[90, 0., 0.], [0., 90, 0.], [0., 0., 90]])  #dimension de la matrice égale au nombre de dimensions des mesures !
@@ -790,8 +791,9 @@ def get_mer(real, estimated):
     :return:
     """
     try:
-        # for i in range(len(real)):
-            # print "réel ", real[i], " estimé ", estimated[i]
+        for i in range(len(real)):
+            print "réel ", real[i], " estimé ", estimated[i]
+            print real[i].distance(estimated[i])
         res = [real[i].distance(estimated[i]) for i in range(len(real))]
         # print "La moyenne des distances entre les estimations et la réalité est : "
         return sum(res)/float(len(res))
@@ -852,6 +854,31 @@ def script_unscented_with_real_measures():
                     l_pos_filter.append(pos)
                 fichier.write(str(get_mer(real_path, l_pos_filter))+"\t"+str(10**-(coeff_s-10))+"\t"+str(10**-(coeff_q-10))+"\t"+str(10**-(coeff_r-10))+"\n")
     fichier.close()
+
+
+def lire_fic_opti():
+    valeurs = []
+    coeff_s = []
+    coeff_q = []
+    coeff_r = []
+    with open("mesures_simulees_10.txt", "r") as f:
+        res = f.read()
+    for r in res.split("\n"):
+        print r
+        if len(r) != 0:
+            ligne = r.split("\t")
+            valeurs.append(ligne[0])
+            coeff_s.append(ligne[1])
+            coeff_q.append(ligne[2])
+            coeff_r.append(ligne[3])
+    maxi = max(valeurs)
+    print maxi
+    ind = valeurs.index(maxi)
+    print ind
+    print "Q", coeff_q[ind]
+    print "R", coeff_r[ind]
+    print "S", coeff_s[ind]
+
 
 def script_classic_trajectory_with_real_measures():
     """
@@ -919,6 +946,50 @@ def script_classic_trajectory():
     print get_mer(real_path_point, l_pos_filtre)
 
 
+def script_unscented_trajectory_with_file():
+    """
+    Script utilisant le filtre de Kalman unscented avec des mesures simulées à partir d'une trajectoire inventée !
+    :return:
+    """
+    print "script_unscented_trajectory"
+    l_points = [[-1000., 200.], [-1000., 800.], [-400., 1200.], [500., 500.], [1100., 180.]]
+    dt = 0.025
+    real_path = generateur_chemin.generate_path(l_points=l_points, velocity_translation=1,
+                                                            velocity_rotation=0.5, dt=dt)
+    measures_pos = np.array(real_path)
+    real_path_point = []
+    for couple in real_path:
+        x, y = couple
+        pos = Point(x, y)
+        real_path_point.append(pos)
+    l_pos_filter = [real_path_point[0]]
+    # vite = get_velocity(measures_pos, dt)
+    # measures = np.concatenate((measures_pos, vite), axis=1)
+    measures = np.asmatrix(measures_pos)
+    mesures_us = []
+    filtering = UnscentedKalmanFilter(measures[0, :].T, dt=dt, dime=2)
+    var = 0
+    # with open("mesures_chemin_determinites", "rb") as f:
+    #     m = pickle.Unpickler(f)
+    #     mesures_us = m.load()
+    for i in range(1, measures.shape[0]):
+        # print mesures_us[i-1]
+
+        x = measures[i, 0]
+        y = measures[i, 1]
+        conv = Converter()
+        m1, m2, m3 = conv.get_measures_from_state(x, y)
+        m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
+        mesures_us.append([m1, m2, m3])
+        # m1, m2, m3 = mesures_us[i-1]
+        filtering.update(np.asmatrix([m1, m2, m3]).T)
+        l_pos_filter.append(filtering.get_state_position())
+    with open("mesures_chemin_determinites", "wb") as f:
+        m = pickle.Pickler(f)
+        m.dump(mesures_us)
+    print get_mer(real_path_point, l_pos_filter)
+
+
 def script_unscented_trajectory():
     """
     Script utilisant le filtre de Kalman unscented avec des mesures simulées à partir d'une trajectoire inventée !
@@ -936,20 +1007,53 @@ def script_unscented_trajectory():
         pos = Point(x, y)
         real_path_point.append(pos)
     l_pos_filter = [real_path_point[0]]
-    vite = get_velocity(measures_pos, dt)
-    measures = np.concatenate((measures_pos, vite), axis=1)
-    measures = np.asmatrix(measures)
+    # vite = get_velocity(measures_pos, dt)
+    # measures = np.concatenate((measures_pos, vite), axis=1)
+    measures = np.asmatrix(measures_pos)
     filtering = UnscentedKalmanFilter(measures[0, :].T, dt=dt, dime=4)
     var = 10
+    # mesures_us = []
     for i in range(1, measures.shape[0]):
         x = measures[i, 0]
         y = measures[i, 1]
         conv = Converter()
         m1, m2, m3 = conv.get_measures_from_state(x, y)
         m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
+        # mesures_us.append([m1, m2, m3])
         filtering.update(np.asmatrix([m1, m2, m3]).T)
         l_pos_filter.append(filtering.get_state_position())
+    # with open("mesures_chemin_determinites", "wb") as f:
+    #     m = pickle.Pickler(f)
+    #     m.dump(mesures_us)
     print get_mer(real_path_point, l_pos_filter)
+
+
+def script_unscented_with_fixed_trajectory_only():
+    print "script_unscented_with_fake_ultrasound_measures"
+    dt = 0.025
+    measures_pos = np.genfromtxt("mesures_25.txt", delimiter="\t")
+    real_path = []
+    for i in range(1, measures_pos.shape[0]):
+        x = measures_pos[i, 0]
+        y = measures_pos[i, 1]
+        real_path.append(Point(x, y))
+    l_pos_filter = [Point(measures_pos[0, :][0], measures_pos[0, :][1])]
+    # vite = get_velocity(measures_pos, dt)
+    # measures_pos = np.concatenate((measures_pos, vite), axis=1)
+    measures_pos = np.asmatrix(measures_pos)
+    filtering = UnscentedKalmanFilter(measures_pos[0, :].T, dt=dt)
+    var = 10
+    for i in range(1, measures_pos.shape[0]):
+        x = measures_pos[i, 0]
+        y = measures_pos[i, 1]
+        conv = Converter()
+        m1, m2, m3 = conv.get_measures_from_state(x, y)
+        print m1, m2, m3
+        m1, m2, m3 = m1 + np.random.randn()*var, m2 + np.random.randn()*var, m3 + np.random.randn()*var
+        filtering.update(np.asmatrix([m1, m2, m3]).T)
+        pos = filtering.get_state_position()
+        l_pos_filter.append(pos)
+    print get_mer(real_path, l_pos_filter)
 
 
 def script_unscented_with_fake_ultrasound_measures():
@@ -998,7 +1102,7 @@ def script_unscented_ivan():
         m1 = measures_us[i, 0]
         m2 = measures_us[i, 1]
         m3 = measures_us[i, 2]
-        filtering.update(np.asmatrix([m1, m2, m3]).T)
+        filtering.update(np.asmatrix([m3, m2, m1]).T)
         pos = filtering.get_state_position()
         print "pos", pos
         l_pos_filter.append(pos)
@@ -1076,13 +1180,15 @@ def script_random_trajectory_unscented_ivan():
 
 
 if __name__ == "__main__":
-    script_unscented_with_real_measures()
+    # script_unscented_with_real_measures()
     # print """
     #
     #
     #
     # """
+    script_unscented_with_fixed_trajectory_only()
     # script_unscented_trajectory()
+    # script_unscented_trajectory_with_file()
     # print """
     #
     #
@@ -1095,3 +1201,4 @@ if __name__ == "__main__":
     # script_unscented_ivan()
     # script_random_unscented_ivan()
     # script_random_trajectory_unscented_ivan()
+    # lire_fic_opti()
