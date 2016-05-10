@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -11,20 +11,23 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B85CB915-0F66-4539-AC23-E792B48C7183}</ProjectGuid>
-    <RootNamespace>balise_emission</RootNamespace>
+    <ProjectGuid>{C5F80730-F44F-4478-BDAE-6634EFC2CA88}</ProjectGuid>
+    <RootNamespace>BaliseT3</RootNamespace>
+    <ProjectName>BaliseT3</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>
+    </PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>
+    </PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -44,10 +47,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <ForcedIncludeFiles>D:\Documents\Arduino\balise_emission\Visual Micro\.balise_emission.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
-      <PreprocessorDefinitions>__AVR_ATmega328p__;__AVR_ATmega328P__;F_CPU=16000000L;ARDUINO=161;ARDUINO_AVR_PRO;ARDUINO_ARCH_AVR;__cplusplus;GCC_VERSION=40801;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;C:\Program Files (x86)\Arduino\hardware\arduino\avr\variants\eightanaloginputs;D:\Documents\Arduino\balise_emission;C:\Program Files (x86)\Arduino\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries;D:\Program Files (x86)\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers;D:\Documents\Arduino\libraries;c:\program files (x86)\arduino\hardware\tools\avr\avr\include\;c:\program files (x86)\arduino\hardware\tools\avr\avr\include\avr\;c:\program files (x86)\arduino\hardware\tools\avr\avr\;c:\program files (x86)\arduino\hardware\tools\avr\lib\gcc\avr\4.8.1\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Program Files (x86)\Arduino\hardware\teensy\avr\cores\teensy3;D:\Program Files (x86)\Arduino\hardware\teensy\avr\cores\teensy3\avr;D:\Program Files (x86)\Arduino\hardware\teensy\avr\cores\teensy3\util;D:\Program Files (x86)\Arduino\hardware\teensy\avr\cores\teensy3\utils;D:\Program Files (x86)\Arduino\hardware\teensy\avr\cores\teensy3\avr;D:\Documents\Git\balise-t3\software\BaliseT3\BaliseT3;D:\Program Files (x86)\Arduino\libraries;D:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries;D:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\mfrdzwlu.vkr\Micro Platforms\default\debuggers;D:\Documents\Arduino\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>D:\Documents\Git\balise-t3\software\BaliseT3\BaliseT3\__vm\.BaliseT3.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <PreprocessorDefinitions>__HARDWARE_MK20dx256__;__HARDWARE_MK20DX256__;__MK20DX256__;TEENSYDUINO=128;ARDUINO=10608;F_CPU=72000000;USB_SERIAL;LAYOUT_FRENCH;__cplusplus=201103L;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -68,14 +71,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="balise_emission.ino">
+    <None Include="BaliseT3.ino">
       <FileType>CppCode</FileType>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Visual Micro\.balise_emission.vsarduino.h" />
+    <ClInclude Include="enum.h" />
+    <ClInclude Include="__vm\.BaliseT3.vsarduino.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties custom_teensy31_usb="serial" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>
