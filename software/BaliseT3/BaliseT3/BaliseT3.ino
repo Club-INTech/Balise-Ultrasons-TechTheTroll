@@ -7,9 +7,12 @@
 	Date : Mai 2016
 */
 
+#include "Communication.h"
+#include "Positionning.h"
 #include "enum.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <XBee\XBee.h>
 
 /*
 	### PIN MAPPING ###
@@ -54,6 +57,9 @@ volatile bool rwMode_40Hz;
 volatile bool isWritten_80Hz[3];
 volatile bool isWritten_40Hz[3];
 
+// Pour envoyer les données finales via la xBee
+Communication commXBee;
+
 
 /*
 	### Initialisation des variables et des I/O ###
@@ -61,7 +67,7 @@ volatile bool isWritten_40Hz[3];
 void setup()
 {
 	Serial.begin(9600);
-	Serial3.begin(9600);
+	commXBee.init(Serial3);
 
 	pinMode(PIN_INT_80HZ, INPUT);
 	pinMode(PIN_INT_40HZ, INPUT);
@@ -114,6 +120,10 @@ void setup()
 */
 void loop()
 {
+	// Objets permettant le calcul de la position
+	Positionning kalman_80Hz;
+	Positionning kalman_40Hz;
+
 	/*
 		Position calculée, en mm
 	*/
@@ -123,20 +133,18 @@ void loop()
 	float positionX_40Hz = 0;
 	float positionY_40Hz = 1000;
 
-	// Calcul basique des delta-T pour Clément
-	int32_t t1_80Hz, t2_80Hz, t3_80Hz;
-	int32_t t1_40Hz, t2_40Hz, t3_40Hz;
-
 	while (true)
 	{
 		if (rwMode_80Hz == READ)
 		{
-			t1_80Hz = timeArray_80Hz[CANAL_1] - timeArray_80Hz[CANAL_2];
-			t2_80Hz = timeArray_80Hz[CANAL_2] - timeArray_80Hz[INT];
-			t3_80Hz = timeArray_80Hz[INT] - timeArray_80Hz[CANAL_1];
+			kalman_80Hz.updatePosition(timeArray_80Hz[CANAL_1], timeArray_80Hz[CANAL_2], timeArray_80Hz[INT]);
+			positionX_80Hz = kalman_80Hz.getX();
+			positionY_80Hz = kalman_80Hz.getY();
 
-			// TODO : calcul des positions
-			// TODO : transmission des positions
+			commXBee.sendPosition(positionX_80Hz, positionY_80Hz, true);
+
+			// DEBUG 
+			Serial.printf("#80#%u;%u;%u\n", timeArray_80Hz[CANAL_1], timeArray_80Hz[CANAL_2], timeArray_80Hz[INT]);
 
 			// Mise à jour des permissions en fonction de la position
 			updatePermissions(positionX_80Hz, positionY_80Hz, permissionArray_80Hz);
@@ -151,12 +159,19 @@ void loop()
 
 		if (rwMode_40Hz == READ)
 		{
-			t1_40Hz = timeArray_40Hz[CANAL_1] - timeArray_40Hz[CANAL_2];
-			t2_40Hz = timeArray_40Hz[CANAL_2] - timeArray_40Hz[INT];
-			t3_40Hz = timeArray_40Hz[INT] - timeArray_40Hz[CANAL_1];
+			kalman_40Hz.updatePosition(timeArray_40Hz[CANAL_1], timeArray_40Hz[CANAL_2], timeArray_40Hz[INT]);
+			positionX_40Hz = kalman_40Hz.getX();
+			positionY_40Hz = kalman_40Hz.getY();
 
+			commXBee.sendPosition(positionX_40Hz, positionY_40Hz, false);
+
+			// DEBUG
+			Serial.printf("#40#%u;%u;%u\n", timeArray_40Hz[CANAL_1], timeArray_40Hz[CANAL_2], timeArray_40Hz[INT]);
+
+			// Mise à jour des permissions en fonction de la position
 			updatePermissions(positionX_40Hz, positionY_40Hz, permissionArray_40Hz);
 
+			// Passage en mode 'Acquisition'
 			isWritten_40Hz[CANAL_1] = false;
 			isWritten_40Hz[CANAL_2] = false;
 			isWritten_40Hz[INT] = false;

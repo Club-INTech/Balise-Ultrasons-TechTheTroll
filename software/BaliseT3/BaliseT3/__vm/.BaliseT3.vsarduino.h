@@ -56,5 +56,9 @@ typedef void *__builtin_va_list;
 
 #define NEW_H
 #include <BaliseT3.ino>
+#include <Communication.cpp>
+#include <Communication.h>
+#include <Positionning.cpp>
+#include <Positionning.h>
 #include <enum.h>
 #endif
