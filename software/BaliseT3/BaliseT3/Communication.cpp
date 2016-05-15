@@ -6,7 +6,7 @@ Communication::Communication()
 
 void Communication::init(HardwareSerial & serial)
 {
-	serial.begin(9600);
+	serial.begin(115200);
 	xBee.setSerial(serial);
 	address.setMsb(0x0013a200);
 	address.setLsb(0x403e0f30);

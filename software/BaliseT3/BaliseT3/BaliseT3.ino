@@ -25,6 +25,7 @@
 #define PIN_C2_40HZ		20
 
 #define PIN_DEL_POWER	3
+#define PIN_DEL_ONBOARD	13	
 #define PIN_DEL_C1		4
 #define PIN_DEL_C2		5
 #define PIN_DEL_INT		6
@@ -41,6 +42,9 @@
 // Définition des modes "Lecture" et "Ecriture" les tableaux de données
 #define READ	0	// Mode traitement des données
 #define WRITE	1	// Mode acquisition de données
+
+// Delta-T maximum entre deux acquisitions supposées voisines
+#define MAX_GAP	6250	// µs
 
 // Tableau de stockage des instants de réception des signaux
 volatile uint32_t timeArray_80Hz[3];
@@ -66,7 +70,7 @@ Communication commXBee;
 */
 void setup()
 {
-	Serial.begin(9600);
+	Serial.begin(115200);
 	commXBee.init(Serial3);
 
 	pinMode(PIN_INT_80HZ, INPUT);
@@ -77,6 +81,7 @@ void setup()
 	pinMode(PIN_C2_40HZ, INPUT);
 
 	pinMode(PIN_DEL_POWER, OUTPUT);
+	pinMode(PIN_DEL_ONBOARD, OUTPUT);
 	pinMode(PIN_DEL_C1, OUTPUT);
 	pinMode(PIN_DEL_C2, OUTPUT);
 	pinMode(PIN_DEL_INT, OUTPUT);
@@ -97,10 +102,10 @@ void setup()
 	timeArray_40Hz[INT] = 0;
 	permissionArray_80Hz[CANAL_1] = CAN_BE_FIRST;
 	permissionArray_80Hz[CANAL_2] = CAN_BE_FIRST;
-	permissionArray_80Hz[INT] = MUST_BE_LAST;
+	permissionArray_80Hz[INT] = CAN_BE_FIRST;
 	permissionArray_40Hz[CANAL_1] = CAN_BE_FIRST;
 	permissionArray_40Hz[CANAL_2] = CAN_BE_FIRST;
-	permissionArray_40Hz[INT] = MUST_BE_LAST;
+	permissionArray_40Hz[INT] = CAN_BE_FIRST;
 
 	attachInterrupt(PIN_INT_80HZ, isr_INT_80Hz, RISING);
 	attachInterrupt(PIN_INT_40HZ, isr_INT_40Hz, CHANGE);
@@ -111,6 +116,7 @@ void setup()
 
 	// Indication du démarrage de la balise
 	digitalWrite(PIN_DEL_POWER, HIGH);
+	digitalWrite(PIN_DEL_ONBOARD, HIGH);
 }
 
 
@@ -144,7 +150,7 @@ void loop()
 			commXBee.sendPosition(positionX_80Hz, positionY_80Hz, true);
 
 			// DEBUG 
-			Serial.printf("#80#%u;%u;%u\n", timeArray_80Hz[CANAL_1], timeArray_80Hz[CANAL_2], timeArray_80Hz[INT]);
+			Serial.printf("%u;%u;%u\n", timeArray_80Hz[CANAL_1], timeArray_80Hz[CANAL_2], timeArray_80Hz[INT]);
 
 			// Mise à jour des permissions en fonction de la position
 			updatePermissions(positionX_80Hz, positionY_80Hz, permissionArray_80Hz);
@@ -166,7 +172,7 @@ void loop()
 			commXBee.sendPosition(positionX_40Hz, positionY_40Hz, false);
 
 			// DEBUG
-			Serial.printf("#40#%u;%u;%u\n", timeArray_40Hz[CANAL_1], timeArray_40Hz[CANAL_2], timeArray_40Hz[INT]);
+			//Serial.printf("#40#%u;%u;%u\n", timeArray_40Hz[CANAL_1], timeArray_40Hz[CANAL_2], timeArray_40Hz[INT]);
 
 			// Mise à jour des permissions en fonction de la position
 			updatePermissions(positionX_40Hz, positionY_40Hz, permissionArray_40Hz);
@@ -264,6 +270,26 @@ bool isWritingAllowed(bool rwMode, uint8_t indice, volatile Permission permissio
 
 
 /*
+	Indique si le temps stocké à l'indice 'indice' est trop en retard par rapport aux autres temps déjà enregistrés
+*/
+bool isTooLate(uint8_t indice, volatile uint32_t timeArray[3], volatile bool isWritten[3])
+{
+	for (int i = 0; i < 3; i++)
+	{
+		if (i != indice && isWritten[i])
+		{
+			if (timeArray[indice] - timeArray[i] > MAX_GAP)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+
+/*
 	### Interruptions d'acquisition des données ###
 */
 
@@ -273,7 +299,12 @@ void isr_INT_80Hz()
 	{
 		timeArray_80Hz[INT] = micros();
 		isWritten_80Hz[INT] = true;
-		if (isWritten_80Hz[CANAL_1] && isWritten_80Hz[CANAL_2])
+		if (isTooLate(INT, timeArray_80Hz, isWritten_80Hz))
+		{
+			isWritten_80Hz[CANAL_1] = false;
+			isWritten_80Hz[CANAL_2] = false;
+		}
+		else if (isWritten_80Hz[CANAL_1] && isWritten_80Hz[CANAL_2])
 		{
 			rwMode_80Hz = READ;
 		}
@@ -286,7 +317,12 @@ void isr_INT_40Hz()
 	{
 		timeArray_40Hz[INT] = micros();
 		isWritten_40Hz[INT] = true;
-		if (isWritten_40Hz[CANAL_1] && isWritten_40Hz[CANAL_2])
+		if (isTooLate(INT, timeArray_40Hz, isWritten_40Hz))
+		{
+			isWritten_40Hz[CANAL_1] = false;
+			isWritten_40Hz[CANAL_2] = false;
+		}
+		else if (isWritten_40Hz[CANAL_1] && isWritten_40Hz[CANAL_2])
 		{
 			rwMode_40Hz = READ;
 		}
@@ -299,7 +335,12 @@ void isr_C1_80Hz()
 	{
 		timeArray_80Hz[CANAL_1] = micros();
 		isWritten_80Hz[CANAL_1] = true;
-		if (isWritten_80Hz[INT] && isWritten_80Hz[CANAL_2])
+		if (isTooLate(CANAL_1, timeArray_80Hz, isWritten_80Hz))
+		{
+			isWritten_80Hz[INT] = false;
+			isWritten_80Hz[CANAL_2] = false;
+		}
+		else if (isWritten_80Hz[INT] && isWritten_80Hz[CANAL_2])
 		{
 			rwMode_80Hz = READ;
 		}
@@ -312,7 +353,12 @@ void isr_C1_40Hz()
 	{
 		timeArray_40Hz[CANAL_1] = micros();
 		isWritten_40Hz[CANAL_1] = true;
-		if (isWritten_40Hz[INT] && isWritten_40Hz[CANAL_2])
+		if (isTooLate(CANAL_1, timeArray_40Hz, isWritten_40Hz))
+		{
+			isWritten_40Hz[INT] = false;
+			isWritten_40Hz[CANAL_2] = false;
+		}
+		else if (isWritten_40Hz[INT] && isWritten_40Hz[CANAL_2])
 		{
 			rwMode_40Hz = READ;
 		}
@@ -325,7 +371,12 @@ void isr_C2_80Hz()
 	{
 		timeArray_80Hz[CANAL_2] = micros();
 		isWritten_80Hz[CANAL_2] = true;
-		if (isWritten_80Hz[CANAL_1] && isWritten_80Hz[INT])
+		if (isTooLate(CANAL_2, timeArray_80Hz, isWritten_80Hz))
+		{
+			isWritten_80Hz[CANAL_1] = false;
+			isWritten_80Hz[INT] = false;
+		}
+		else if (isWritten_80Hz[CANAL_1] && isWritten_80Hz[INT])
 		{
 			rwMode_80Hz = READ;
 		}
@@ -338,7 +389,12 @@ void isr_C2_40Hz()
 	{
 		timeArray_40Hz[CANAL_2] = micros();
 		isWritten_40Hz[CANAL_2] = true;
-		if (isWritten_40Hz[CANAL_1] && isWritten_40Hz[INT])
+		if (isTooLate(CANAL_2, timeArray_40Hz, isWritten_40Hz))
+		{
+			isWritten_40Hz[CANAL_1] = false;
+			isWritten_40Hz[INT] = false;
+		}
+		else if (isWritten_40Hz[CANAL_1] && isWritten_40Hz[INT])
 		{
 			rwMode_40Hz = READ;
 		}
