@@ -10,7 +10,7 @@
 \usepackage{hyperref}
 \usepackage[]{algorithm2e}
 \usepackage{geometry}
-\geometry{hmargin=2cm,vmargin=2cm}
+\geometry{hmargin=1cm,vmargin=1cm}
 
 
 
@@ -123,20 +123,39 @@ Pour ce modèle, on essaiera un filtre de Kalman classique et un filtre  de Kalm
 %	\caption{Détermination de $q_i$ pour $i \in \{1..N-1\}$}
 %	\end{algorithm}
 %	
-%Algorithme de Kalman Unscented
-%\begin{algorithm}[H]
-%		
-%		\KwData{$tag(w_{i}) = t_{i}$ et $tag(w_{i+1}) = t_{i+1} C(t_{i},t_{i+1}) = \{(w_i,w_{i+1})| T(w_i) = t_i~et~T(w_{i+1}) = t_{i+1} \}, w_{1:N}$}
-%		\KwResult{$q_{i}(w_{i},w_{i+1}) i \in \{1 .. N-1\}$}
-%		\eIf{$(w_{i},w_{i+1}) \in C(t_{i},t_{i+1}) $}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i},w_{i+1})$\;}{
-%		\eIf{$w_{i} \in C(t_{i},t_{i+1})$ et $w_{i+1} \in C(t_{i},t_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i}) * p(t_{i},t_{i+1},w_{i+1})$}{
-%		\eIf{$w_{i} \in C(t_{i},t_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i})$}{
-%		\eIf{$w_{i+1} \in C(t_{i},t_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1},w_{i+1})$}{$q_{i}(w_{i},w_{i+1}) = p(t_{i},t_{i+1})$}}}}
-%	\caption{Détermination de $q_i$ pour $i \in \{1..N-1\}$}
-%	\end{algorithm}
-%
 
+\begin{algorithm}[H]
+\KwData{d : dimension des mesures, $\alpha$ = , $\beta$ = , $\kappa$ = , $\mu_0$  : position initiale, $\Sigma_0$ matrice de covariance initiale, $\lambda$ = $\alpha^2*(d+\kappa)$ - d, $\gamma = d+\lambda$, Q : matrice de covariance de l'équation d'évolution, R : matrice de covariance de l'équation d'observation, $wm_0 = \frac{\lambda}{d+\lambda}$, $wm = \frac{1}{2*(d+\lambda)}$, $wc_0 = wm_0+(1-\alpha^2+\beta)$}
+%\KwResult{$q_{i}(w_{i},w_{i+1}) i \in \{1 .. N-1\}$}
+\While{Plus de mesure}
+{
+	racine\_sigma = decompositionDeCholesky($\gamma*\Sigma$);
+	points\_sigma = [$\mu$; $\mu - racine\_sigma_{:,i}(i \in {1, ..., d}); \mu + racine\_sigma_{:,i} (i \in {1,..., d})$];
+	z\_etoile\_barre = G(points\_sigma);
+			
+		
+		
+		
+		
+		
+		
+		
+		}
+		
+	\caption{Algorithme de Kalman Unscented}
+	\end{algorithm}
 
+\section{De la mesure venant des balises à la mesure qui rejoint le modèle}
+
+Sylvain donne les mesures et obtient trois valeurs pour une salve de mesures qu'on va appeler $t_1, t_2, t_3$. J'ai vu que nous avions tous les 3 un positionnement des balises différent. J'ai donc fait des échanges comme il convient.
+Position (-1500, 0). Sylvain : 1. Clément : 1. Ivan : 2.
+Position (-1500, 2000). Sylvain : 2. Clément : 3. Ivan : 3.
+Position (1500, 1000). Sylvain : 3. Clément : 2. Ivan : 1.
+Donc il faut faire les échanges de valeurs en conséquence. Les valeurs sont en microsecondes donc il faut les convertir en secondes en divisant par $10^6$. Il faut convertir ce temps en distance (qui pour l'instant ne veut rien dire) en multipliant par la vitesse du son en mètre par seconde. On obient alors des distances que l'on appelle $d_1, d_2, d_3$. Il suffit de faire les différences de distance comme il suit : $m_1 = d_1 - d_2, m_2 = d_1 - d_3, m_3 = d_2 - d_3$.
+
+Pour résumer, Ivan, tu dois faire : $m_1 = (t_3 - t_1)*v_s/10^6, m_2 = (t_3 - t_2)*v_s/10^6, m_3 = (t_1 - t_2)*v_s/10^6$.
+
+Pour résumer, et moi je dois faire : $m_1 = (t_1 - t_3)*v_s/10^6, m_2 = (t_1 - t_2)*v_s/10^6, m_3 = (t_3 - t_2)*v_s/10^6$.
 
 \section{Annexe I : mesure vers état}
 
