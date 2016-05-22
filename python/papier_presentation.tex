@@ -26,7 +26,10 @@
 
 Chaque année a lieu la coupe de France de robotique. Durant cette compétition, deux robots évoluent sur une table de deux mètres sur trois en 90 secondes pour obtenir un maximum de points. La table étant partagée en même temps par deux robots, il est nécessaire d'éviter le robot adverse pour des raisons de sécurité et pour des raisons stratégiques. C'est la raison même d'un tel système de balisage.
 
-\input{schema_table.tex}
+
+
+\centerline{\input{schema_table.tex}}
+
 
 \section{Système de balisage}
 
@@ -69,6 +72,7 @@ Soit $X_t$, la position du robot à l'instant t.
 		\end{pmatrix}\\
 	\end{split}
 \end{equation}
+
 Soit $Y_t$ la mesure prise à l'instant t.
 \begin{equation} \label{4}
 	\begin{split}
@@ -79,10 +83,11 @@ Soit $Y_t$ la mesure prise à l'instant t.
 		\end{pmatrix}\\
 	\end{split}
 \end{equation}
-Soit h la fonction qui à une position (x, y) associe la différence de distance entre cette position etles balises suivant le schéma suivant : 
+
+Soit H la fonction qui à une position (x, y) associe la différence de distance entre cette position etles balises suivant le schéma suivant : 
 \begin{equation}
 	\begin{split}\label{5}
-		h(x, y)  &= 
+		H(x, y)  &= 
 		\begin{pmatrix}
 				d((x,y),PR1) - d((x,y),PR2)\\
 				d((x,y),PR1) - d((x,y),PR3)\\
@@ -90,14 +95,27 @@ Soit h la fonction qui à une position (x, y) associe la différence de distance
 		\end{pmatrix}\\
 	\end{split}
 \end{equation}
+
 On considère les $Y_t$ ainsi parce que c'est plus clair de raisonner avec des distances qu'avec des différences de temps. On notera les valeurs estimées avec un accent circonflexe sur la lettre, les valeurs simulées avec un tilde.
 Soit E([$t_1$, $t_2$], PAS) une liste dont les éléments dont les multiples de $t_1$ compris entre $t_1$ et $t_2$. On considèrera dans la suite que l'unité de ses éléments est en seconde. 
 [$t_1$, $t_2$] sera [0, 90] parce qu'un match dure 90 s. Le pas n'est pas encore décidé, cela dépendra des ressources disponibles du robot. On prendra pour l'exemple PAS = 0.025 s.
 
+Pour le filtrage, on considérera ces équations avec Q, matrice de covariance de l'équation d'évolution et R, matrice de covariance de l'équation d'observation
+
+L'équation d'observation est : 
+\begin{equation}
+	X_t = H(Y_t) + \mathcal{N}(0, R)
+\end{equation}
+
+L'équation d'évolution est : 
+\begin{equation}
+	X_{t+1} = G(X_{t}) + \mathcal{N}(0, Q)
+\end{equation}
+
 \begin{algorithm}[H]
 		
-		\KwData{$C = [(x_t, y_t), t \in E([0, 90], 0.025)]$ le chemin, $\sigma^2$ la variance }
-		\KwResult{$MB = [(m_1(t), m_2(t), m_3(t)]$}
+		\Donnees{$C = [(x_t, y_t), t \in E([0, 90], 0.025)]$ le chemin, $\sigma^2$ la variance }
+		\Res{$MB = [(m_1(t), m_2(t), m_3(t)]$}
 		\ForAll{($x_t$, $y_t$) $\in$ C}
 		{$m_1$, $m_2$, $m_3$ = h($x_t$, $y_t$) \\
 		$\tilde{m_1}$, $\tilde{m_2}$, $\tilde{m_3}$ = {$m_1$} + $\mathcal{N}$(0, $\sigma^2$), {$m_2$} + $\mathcal{N}$(0, $\sigma^2$), {$m_3$} + $\mathcal{N}$(0, $\sigma^2$)\\
@@ -109,7 +127,7 @@ Soit E([$t_1$, $t_2$], PAS) une liste dont les éléments dont les multiples de 
 
 \section{Filtrage}
 
-Pour ce modèle, on essaiera un filtre de Kalman classique et un filtre  de Kalman unscented.
+On utilise ici un filtre de Kalman unscented.
 
 %Algorithme de Kalman
 %\begin{algorithm}[H]
@@ -125,22 +143,62 @@ Pour ce modèle, on essaiera un filtre de Kalman classique et un filtre  de Kalm
 %	
 
 \begin{algorithm}[H]
-\KwData{d : dimension des mesures, $\alpha$ = , $\beta$ = , $\kappa$ = , $\mu_0$  : position initiale, $\Sigma_0$ matrice de covariance initiale, $\lambda$ = $\alpha^2*(d+\kappa)$ - d, $\gamma = d+\lambda$, Q : matrice de covariance de l'équation d'évolution, R : matrice de covariance de l'équation d'observation, $wm_0 = \frac{\lambda}{d+\lambda}$, $wm = \frac{1}{2*(d+\lambda)}$, $wc_0 = wm_0+(1-\alpha^2+\beta)$}
+\Donnees{d = 2 : dimension des mesures, $\alpha$ = 1, $\beta$ = 0, $\kappa$ = 2, $\mu_0$  : position initiale, $\Sigma_0$ matrice de covariance initiale, 
+
+$\lambda$ = $\alpha^2*(d+\kappa)$ - d, $\gamma = d+\lambda$, 
+
+Q : matrice de covariance de l'équation d'évolution, R : matrice de covariance de l'équation d'observation, 
+
+H est décrite telle que dans la partie 4 et G est la fonction identité.
+
+$w^{0}_m = \frac{\lambda}{d+\lambda}$, $w^{0}_c = w^{0}_m+(1-\alpha^2+\beta)$, $w^i_c = w^{i}_{m} = \frac{1}{2*(d+\lambda)}$}
 %\KwResult{$q_{i}(w_{i},w_{i+1}) i \in \{1 .. N-1\}$}
-\While{Plus de mesure}
+\Repeter{plus aucune mesure}
 {
-	racine\_sigma = decompositionDeCholesky($\gamma*\Sigma$);
-	points\_sigma = [$\mu$; $\mu - racine\_sigma_{:,i}(i \in {1, ..., d}); \mu + racine\_sigma_{:,i} (i \in {1,..., d})$];
-	z\_etoile\_barre = G(points\_sigma);
-			
+	Partie prédiction :
+	
+	\Deb{$\sqrt{\Sigma}$ = decompositionDeCholesky($\gamma*\Sigma$);
 		
+	$\dot{\sigma}_{t-1}$ = [$\mu_{t-1}$; $\mu_{t-1} - \sqrt{\Sigma}_{:,i}~(i \in \{1, ..., d\}); \mu_{t-1} + \sqrt{\Sigma}_{:,i}~(i \in \{1,..., d\})$];
+	
+	\Pour{$i \in \{0,..., 2*d\}$}
+	{
+	$\bar{z}^{*~i}_t = G(\dot{\sigma}^{i}_{t-1})$;
+	}
+	$\bar{\mu}_{t} = \sum_{i = 0}^{2*d}w^i_m*\bar{z}^{*i}_t$;
+	
+	$\bar{\Sigma}_t = \sum_{i=0}^{2*d} w^i_c(\bar{z}^{*i}_t - \bar{\mu}_t)(\bar{z}^{*i}_t - \bar{\mu}_t)^{T} + Q_t$;}
+	
+	Partie mise-à-jour grâce à l'observation :
+	
+	\Deb{
+	$\sqrt{\bar{\Sigma}}$ =decompositionDeCholesky($\gamma*\bar{\Sigma}$);
+	
+	$\bar{\dot{\sigma}}_{t}$ = [$\mu$; $\mu - \sqrt{\bar{\Sigma}_{:,i}}~(i \in \{1, ..., d\}); \mu + \sqrt{\bar{\Sigma}_{:,i}}~(i \in \{1,..., d\})$];
+	
+	\Pour{$i \in \{0,..., 2*d\}$}
+	{
+	$\bar{y}^{*~i}_t = H(\bar{\dot{\sigma}}^i_{t})$;
+	}
+	
+	$\hat{y}^{*i}_t = \sum_{i = 0}^{2*d} w^{i}_{m}*\bar{y}^{*i}_{t}$;
+	
+	$S_t = \sum_{i=0}^{2*d} w_{c}^{i}(\bar{y}^{*i}_t - \hat{y}^{*i}_t)*(\bar{y}^{*i}_t - \hat{y}^{*i}_t)^{T} + R_t$;}
+	
+	Partie estimation de l'état actuel :
+	
+	\Deb{
+	$\bar{\Sigma}^{z,y}_t = \sum_{i=0}^{2*d} w^{i}_{c} (\bar{z}^{*i}_t - \bar{\mu}_t)*(\bar{y}^{*i}_t - \hat{y}^{*i}_t)^{T}$;
+	
+	$K_t = \bar{\Sigma}^{z,y}_t*S_t^{-1}$;
+	
+	$\mu_t = \bar{\mu}+K_t*(y_t - \hat{y}_{t}) $;
+	
+	$\Sigma_t = \bar{\Sigma} - K_t*S_t*K^T_t$;
 		
+	}
 		
-		
-		
-		
-		
-		}
+}
 		
 	\caption{Algorithme de Kalman Unscented}
 	\end{algorithm}
@@ -151,13 +209,16 @@ Sylvain donne les mesures et obtient trois valeurs pour une salve de mesures qu'
 Position (-1500, 0). Sylvain : 1. Clément : 1. Ivan : 2.
 Position (-1500, 2000). Sylvain : 2. Clément : 3. Ivan : 3.
 Position (1500, 1000). Sylvain : 3. Clément : 2. Ivan : 1.
-Donc il faut faire les échanges de valeurs en conséquence. Les valeurs sont en microsecondes donc il faut les convertir en secondes en divisant par $10^6$. Il faut convertir ce temps en distance (qui pour l'instant ne veut rien dire) en multipliant par la vitesse du son en mètre par seconde. On obient alors des distances que l'on appelle $d_1, d_2, d_3$. Il suffit de faire les différences de distance comme il suit : $m_1 = d_1 - d_2, m_2 = d_1 - d_3, m_3 = d_2 - d_3$.
+Donc il faut faire les échanges de valeurs en conséquence. Les valeurs sont en microsecondes donc il faut les convertir en secondes en divisant par $10^6$. Il faut convertir ce temps en distance (qui pour l'instant ne veut rien dire) en multipliant par la vitesse du son en millimètre par seconde. On obient alors des distances que l'on appelle $d_1, d_2, d_3$. Il suffit de faire les différences de distance comme il suit : $m_1 = d_1 - d_2, m_2 = d_1 - d_3, m_3 = d_2 - d_3$.
 
 Pour résumer, Ivan, tu dois faire : $m_1 = (t_3 - t_1)*v_s/10^6, m_2 = (t_3 - t_2)*v_s/10^6, m_3 = (t_1 - t_2)*v_s/10^6$.
 
 Pour résumer, et moi je dois faire : $m_1 = (t_1 - t_3)*v_s/10^6, m_2 = (t_1 - t_2)*v_s/10^6, m_3 = (t_3 - t_2)*v_s/10^6$.
 
-\section{Annexe I : mesure vers état}
+\section{Annece I : Notations}
+Soit M une matrice de taille (m, n). On note $M_{:,i}$ le vecteur colonne correspondant à la colonne i ($i \in \{1,...,n\}$) de M.
+
+\section{Annexe II : mesure vers état}
 
 Les trois équations du système représentent trois équations d'hyperbole. (x,y) se retrouvent à l'intersection de trois branches d'hyperbole. Cependant,la formule donnée à Mathematica (CHANGER LA FORMULATION) donne, pour chaque couple possible d'équation, deux solutions. Au total il y a 6 solutions.
 
@@ -228,5 +289,9 @@ Les trois équations du système représentent trois équations d'hyperbole. (x,
 }
 \end{itemize}
 
+\bibliographystyle{plain}
+\bibliography{biblio}
+\nocite{DBLP:conf/icassp/MerweW01}
+\nocite{DBLP:journals/ipl/BoroujerdiU98}
 \end{document}
 
