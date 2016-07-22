@@ -11,3 +11,7 @@
 
 #Images (souvent trop lourdes)
 *.png
+
+#Random bullshit
+~*
+**/.directory
