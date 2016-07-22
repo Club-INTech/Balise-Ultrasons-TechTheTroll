@@ -12,6 +12,10 @@
 #Images (souvent trop lourdes)
 *.png
 
+#Executables
+*.hex
+*.exe
+
 #Random bullshit
 ~*
 **/.directory
