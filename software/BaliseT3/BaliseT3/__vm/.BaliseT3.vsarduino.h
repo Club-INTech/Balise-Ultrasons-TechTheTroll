@@ -55,6 +55,16 @@ typedef void *__builtin_va_list;
 //#define noInterrupts() __disable_irq()
 
 #define NEW_H
+
+//
+//
+void isr_INT_80Hz();
+void isr_INT_40Hz();
+void isr_C1_80Hz();
+void isr_C1_40Hz();
+void isr_C2_80Hz();
+void isr_C2_40Hz();
+
 #include <BaliseT3.ino>
 #include <Communication.cpp>
 #include <Communication.h>

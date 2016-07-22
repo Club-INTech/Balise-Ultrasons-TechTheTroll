@@ -1,4 +1,4 @@
-Acquisition avec reprise sur erreur n°1
+﻿Acquisition avec reprise sur erreur n°1
 Robot imobile
 
 Positionnement des balises :
@@ -14,6 +14,15 @@ Coordonnées des balises, en mm :
 (1)=(-1500;0)
 (2)=(-1500;2000)
 (3)=(1500;1000)
+
+
+d1 = d(R, b1)
+d2 = d(R, b2)
+d3 = d(R, b3)
+
+K1 = d3 - d2
+K2 = d3 - d1
+K3 = d2 - d1
 
 Vitesse du son : 340 m/s
 
