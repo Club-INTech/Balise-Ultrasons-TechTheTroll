@@ -34,7 +34,8 @@ public class Display extends JPanel {
 			try {
 				image = ImageIO.read(new File("fond.png"));
 			} catch (IOException e) {
-				e.printStackTrace();
+				this.afficheFond = false;
+				System.out.println("Fichier fond.png introuvable !");
 			}
 			sizeX = image.getWidth(this);
 			sizeY = image.getHeight(this);
@@ -77,17 +78,12 @@ public class Display extends JPanel {
 	/**
 	 * Appelé automatiquement. Affiche tous les points
 	 */
-	public void paint(Graphics g)
+	public synchronized void paint(Graphics g)
 	{
 		if(afficheFond)
 			g.drawImage(image, 0, 0, this);
 		for(Point p : points)
-			drawPoint(g, p, 5);
-	}
-
-	public void readFile()
-	{
-		
+			drawPoint(g, p, 8);
 	}
 	
 	/**
@@ -115,13 +111,13 @@ public class Display extends JPanel {
 		frame.setVisible(true);
 	}
 	
-	public void addPoint(Point p)
+	public synchronized void addPoint(Point p)
 	{
 		points.add(p);
 		repaint();
 	}
 	
-	public void clearPoints()
+	public synchronized void clearPoints()
 	{
 		points.clear();
 		repaint();
