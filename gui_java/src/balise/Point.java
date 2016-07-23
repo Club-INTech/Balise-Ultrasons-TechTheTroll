@@ -29,6 +29,11 @@ public class Point
 	
 	public String toString()
 	{
-		return "("+x+" "+y+")";
+		return "("+x+", "+y+")";
+	}
+	
+	public double distance(Point autre)
+	{
+		return Math.hypot(autre.x - x, autre.y - y);
 	}
 }

@@ -13,10 +13,6 @@ public class TestBalise {
 	public static void main(String[] args)
 	{
 		Display display = new Display(false);
-/*		Triangulation.computePoints(23330878, 23332898, 23326993);
-		display.addPoint(Triangulation.getPoint1());
-		display.addPoint(Triangulation.getPoint2());
-	*/	
 		FileProcess file = new FileProcess();
 		try {
 			file.open("../Benchmark/Test acquisition vanilla-chocolate.txt");

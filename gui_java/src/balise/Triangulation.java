@@ -26,12 +26,14 @@ public class Triangulation {
     	return point2;
     }
 
-    public static void computePoints(double t0, double t1, double t2)
+    public static void computePoints(int t0, int t1, int t2)
     {
     	double k2 = (t2 - t0) * speedOfSound;
     	double k3 = (t1 - t0) * speedOfSound;
-
-        double cte = -Math.pow(-2*k2+k3,2)*l*l*(k3*k3-l*l)*(4*k2*k2-l*l-4*L*L)*(4*k2*k2-8*k2*k3+4*k3*k3-l*l-4*L*L);
+    	
+//    	System.out.println(k2+" "+k3);
+    	
+        double cte = -(-2*k2+k3)*(-2*k2+k3)*l*l*(k3*k3-l*l)*(4*k2*k2-l*l-4*L*L)*(4*k2*k2-8*k2*k3+4*k3*k3-l*l-4*L*L);
         double sq;
         if(cte >= 0)
             sq = Math.sqrt(cte);
@@ -50,9 +52,9 @@ public class Triangulation {
         double cy = 4*(2*k2-k3)*l*(4*k2*k2*l*l-4*k2*k3*l*l+k3*k3*l*l+4*k3*k3*L*L-4*l*l*L*L);
 
         double X1 = (ax + bx) / cx;
-        double Y1 = (ay + by) / cy + 1000;
+        double Y1 = (ay + by) / cy;
         double X2 = (ax - bx) / cx;
-        double Y2 = (ay - by) / cy + 1000;
+        double Y2 = (ay - by) / cy;
 
         point1 = new Point((int)(X1), (int)(Y1), Couleur.ROUGE);
         point2 = new Point((int)(X2), (int)(Y2), Couleur.BLEU);

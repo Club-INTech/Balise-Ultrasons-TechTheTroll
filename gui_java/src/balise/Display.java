@@ -113,8 +113,11 @@ public class Display extends JPanel {
 	
 	public synchronized void addPoint(Point p)
 	{
-		points.add(p);
-		repaint();
+		if(p.x >= -1500 && p.x <= 1500 && p.y >= 0 && p.y <= 2000)
+		{
+			points.add(p);
+			repaint();
+		}
 	}
 	
 	public synchronized void clearPoints()
