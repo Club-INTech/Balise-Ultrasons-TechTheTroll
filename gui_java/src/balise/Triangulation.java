@@ -9,8 +9,8 @@ package balise;
 
 public class Triangulation {
 
-    private final static int L = 3000;
-    private final static int l = 2000;
+    private final static double L = 3000;
+    private final static double l = 2000;
     private final static double speedOfSound = 0.34; // in mm/µs
 
     private static Point point1;
@@ -31,8 +31,6 @@ public class Triangulation {
     	double k2 = (t2 - t0) * speedOfSound;
     	double k3 = (t1 - t0) * speedOfSound;
     	
-//    	System.out.println(k2+" "+k3);
-    	
         double cte = -(-2*k2+k3)*(-2*k2+k3)*l*l*(k3*k3-l*l)*(4*k2*k2-l*l-4*L*L)*(4*k2*k2-8*k2*k3+4*k3*k3-l*l-4*L*L);
         double sq;
         if(cte >= 0)
@@ -51,6 +49,8 @@ public class Triangulation {
         double by = 2*k3*L*sq;
         double cy = 4*(2*k2-k3)*l*(4*k2*k2*l*l-4*k2*k3*l*l+k3*k3*l*l+4*k3*k3*L*L-4*l*l*L*L);
 
+//        System.out.println("sq = "+sq+", ax = "+ax+", bx = "+bx+", cx = "+cx+", ay = "+ay+", by = "+by+", cy = "+cy);
+        
         double X1 = (ax + bx) / cx;
         double Y1 = (ay + by) / cy;
         double X2 = (ax - bx) / cx;
