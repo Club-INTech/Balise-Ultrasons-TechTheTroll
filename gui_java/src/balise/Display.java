@@ -20,6 +20,8 @@ public class Display extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private ArrayList<Point> points1 = new ArrayList<Point>();
 	private ArrayList<Point> points2 = new ArrayList<Point>();
+	private ArrayList<Hyperbola> hyperboles = new ArrayList<Hyperbola>();
+	
 	private boolean afficheFond;
 	private int sizeX = 900, sizeY = 600; // taille par défaut
 	private Image image;
@@ -87,6 +89,12 @@ public class Display extends JPanel {
 			g.drawImage(image, 0, 0, this);
 		else
 			g.fillRect(0, 0, sizeX, sizeY);
+
+		for(Hyperbola h : hyperboles)
+		{
+			drawHyperbola(g, h);
+		}
+
 		Point last = null;
 		for(Point p : points1)
 		{
@@ -102,6 +110,34 @@ public class Display extends JPanel {
 			drawPoint(g, p, 8);
 			if(last != null)
 				drawLine(g, last, p);
+			last = p;
+		}
+	}
+
+	/**
+	 * Affichage d'une hyperbole
+	 * @param g
+	 * @param h
+	 */
+	public void drawHyperbola(Graphics g, Hyperbola h)
+	{
+		double a = h.delta / 2;
+		double c = h.p1.distance(h.p2) / 2;
+		double b = Math.sqrt(c*c - a*a);
+		Point centre =  new Point((h.p1.x + h.p2.x) / 2, (h.p1.y + h.p2.y) / 2);
+		double angle = Math.atan2(h.p2.y - h.p1.y, h.p2.x - h.p1.x);
+		double cos = Math.cos(angle);
+		double sin = Math.sin(angle);
+		Point last = null;
+		for(double i = -10000; i < 10000; i++)
+		{
+			double x = -a*Math.cosh(i/1000);
+			double y = b*Math.sinh(i/1000);
+			Point p = new Point((int)(cos*x-sin*y), (int)(sin*x+cos*y));
+			p.x += centre.x;
+			p.y += centre.y;
+			if(last != null)
+			drawLine(g, last, p);
 			last = p;
 		}
 	}
@@ -161,6 +197,19 @@ public class Display extends JPanel {
 		points2.clear();
 		repaint();
 	}
+	
+	public synchronized void addHyperbola(Hyperbola h)
+	{
+		hyperboles.add(h);
+		repaint();
+	}
+
+	public synchronized void clearHyperboles()
+	{
+		hyperboles.clear();
+		repaint();
+	}
+
 
 	/**
 	 * Sauvegarde (en png) l'image

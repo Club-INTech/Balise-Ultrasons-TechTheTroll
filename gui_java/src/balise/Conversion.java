@@ -17,6 +17,7 @@ import java.io.UnsupportedEncodingException;
 
 public class Conversion {
 
+	@SuppressWarnings("resource")
 	public static void main(String[] args)
 	{
 /*		args = new String[2];

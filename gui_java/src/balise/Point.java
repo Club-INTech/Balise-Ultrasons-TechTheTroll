@@ -12,6 +12,11 @@ public class Point
 	public int x, y;
 	public Couleur couleur;
 	
+	public Point()
+	{
+		this(0, 0);
+	}
+	
 	public Point(int x, int y, Couleur couleur)
 	{
 		this.x = x;
