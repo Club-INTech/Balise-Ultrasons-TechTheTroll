@@ -22,7 +22,7 @@ public class Conversion {
 	{
 /*		args = new String[2];
 		args[0] = "../Benchmark/P1.txt";
-		args[1] = "../Benchmark/out.txt";
+		args[1] = "../Benchmark/test.txt";
 */
 		if(args.length != 2)
 		{
@@ -50,6 +50,7 @@ public class Conversion {
 			}
 			return;
 		} catch (FileNotFoundException e1) {
+			System.err.println(e1);
 			try {
 				br.close();
 			} catch (IOException e) {
@@ -58,7 +59,6 @@ public class Conversion {
 			System.err.println(e1);
 			return;
 		}
-			
 		try {
 			out.write("# T3 patented");
 			out.newLine();
@@ -74,10 +74,21 @@ public class Conversion {
 					    br.close();		
 						System.out.println("Done.");
 					    return;	
-					}			
-					timestamps[i] = line.split(";")[1];
+					}
+					if(!line.contains(";") || line.split(";").length != 2)
+						i--;
+					else
+					{
+						int indice = Integer.parseInt(line.split(";")[0]);
+						if(timestamps[indice] !=  null)
+						{
+							System.err.println("Indice en doublon : "+indice);
+							return;
+						}
+						timestamps[indice] = line.split(";")[1];
+					}
 				}
-				// à vérifier
+				// TODO à vérifier
 				out.write(timestamps[1]+";"+timestamps[0]+";"+timestamps[2]);
 				out.newLine();
 			}
