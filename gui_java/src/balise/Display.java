@@ -4,6 +4,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -81,8 +82,11 @@ public class Display extends JPanel {
 	 */
 	public synchronized void paint(Graphics g)
 	{
+		g.setColor(Color.WHITE);
 		if(afficheFond)
 			g.drawImage(image, 0, 0, this);
+		else
+			g.fillRect(0, 0, sizeX, sizeY);
 		Point last = null;
 		for(Point p : points1)
 		{
@@ -156,6 +160,21 @@ public class Display extends JPanel {
 		points1.clear();
 		points2.clear();
 		repaint();
+	}
+
+	/**
+	 * Sauvegarde (en png) l'image
+	 * @param filename
+	 */
+	public void saveImage(String filename)
+	{
+		BufferedImage bi = new BufferedImage(sizeX, sizeY, BufferedImage.TYPE_INT_RGB);
+		paint(bi.getGraphics());
+	    try {
+			ImageIO.write(bi, "PNG", new File(filename));
+		} catch (IOException e) {
+			System.err.println(e);
+		}
 	}
 	
 }

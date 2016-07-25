@@ -12,10 +12,10 @@ public class TestBalise {
 
 	public static void main(String[] args)
 	{
-		Display display = new Display(false);
+		Display display = new Display(true);
 		FileProcess file = new FileProcess();
 		try {
-			file.open("../Benchmark/Test acquisition vanilla-chocolate.txt");
+			file.open("../Benchmark/out.txt");
 			int[] temps;
 
 //			for(int i = 0; i < 2; i++)
@@ -28,7 +28,8 @@ public class TestBalise {
 				display.addPointList1(Triangulation.getPoint1());
 				display.addPointList2(Triangulation.getPoint2());
 			}
-
+			System.out.println("Tous les points sont affichés.");
+			display.saveImage("test.png");
 			file.close();
 		} catch (IOException e1) {
 			e1.printStackTrace();

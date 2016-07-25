@@ -59,7 +59,7 @@ public class Triangulation {
         point1 = new Point((int)(X1), (int)(Y1), Couleur.ROUGE);
         point2 = new Point((int)(X2), (int)(Y2), Couleur.BLEU);
         
-        System.out.println(point1+" "+point2);
+//        System.out.println(point1+" "+point2);
 
     }
     

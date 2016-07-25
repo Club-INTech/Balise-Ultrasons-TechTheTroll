@@ -22,7 +22,7 @@ public class Conversion {
 /*		args = new String[2];
 		args[0] = "../Benchmark/P1.txt";
 		args[1] = "../Benchmark/out.txt";
-	*/	
+*/
 		if(args.length != 2)
 		{
 			System.out.println("Utilisation : java -jar conversion.jar input-file output-file");
@@ -71,9 +71,9 @@ public class Conversion {
 					{
 						out.close();
 					    br.close();		
+						System.out.println("Done.");
 					    return;	
 					}			
-					System.out.println(line);
 					timestamps[i] = line.split(";")[1];
 				}
 				out.write(timestamps[0]+";"+timestamps[1]+";"+timestamps[2]);
