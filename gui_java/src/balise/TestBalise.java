@@ -12,6 +12,11 @@ public class TestBalise {
 
 	public static void main(String[] args)
 	{
+		/*
+		args = new String[1];
+		args[0] = "../Benchmark/P2_vanille-chocolat.txt";
+*/
+		
 		if(args.length < 1)
 		{
 			System.out.println("Utilisation : java -jar testbalise.jar input-file [-background]");
