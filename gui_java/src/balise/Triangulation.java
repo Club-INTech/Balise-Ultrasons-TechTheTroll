@@ -1,5 +1,7 @@
 package balise;
 
+import filtres.Vec2;
+
 /**
  * Classe qui triangulaire à partir des timestamps
  * Adapté du code python de Sylvain
@@ -13,10 +15,10 @@ public class Triangulation {
     private final static double l = 2000;
     private final static double speedOfSound = 0.34; // in mm/µs
 
-    private static Point point1;
+    private static Vec2 point1;
 //    private static Point point2;
     
-    public static Point getPoint1()
+    public static Vec2 getPoint1()
     {
     	return point1;
     }
@@ -56,7 +58,7 @@ public class Triangulation {
 //        double X2 = (ax - bx) / cx;
 //        double Y2 = (ay - by) / cy;
 
-        point1 = new Point((int)(X1), (int)(Y1), Couleur.ROUGE);
+        point1 = new Vec2((int)(X1), (int)(Y1));
 //        point2 = new Point((int)(X2), (int)(Y2), Couleur.BLEU);
         
 //        System.out.println(point1+" "+point2);

@@ -1,5 +1,7 @@
 package balise;
 
+import filtres.Vec2;
+
 /**
  * Tous les paramètres pour une hyperbole
  * @author pf
@@ -8,21 +10,21 @@ package balise;
 
 public class Hyperbola {
 
-	private static Point[] balises;
+	private static Vec2[] balises;
     private final static double speedOfSound = 0.34; // in mm/µs
 
 	static
 	{
-		balises = new Point[3];
-		balises[0] = new Point(-1500, 0);
-		balises[1] = new Point(-1500, 2000);
-		balises[2] = new Point(1500, 1000);
+		balises = new Vec2[3];
+		balises[0] = new Vec2(-1500, 0);
+		balises[1] = new Vec2(-1500, 2000);
+		balises[2] = new Vec2(1500, 1000);
 	}
 	
-	public Point p1 = null, p2 = null;
+	public Vec2 p1 = null, p2 = null;
 	public double delta; // en mm
 	
-	public Hyperbola(Point p1, Point p2, double delta)
+	public Hyperbola(Vec2 p1, Vec2 p2, double delta)
 	{
 		this.p1 = p1;
 		this.p2 = p2;

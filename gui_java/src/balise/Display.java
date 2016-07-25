@@ -3,6 +3,8 @@ package balise;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
+import filtres.Vec2;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -17,9 +19,27 @@ import java.util.ArrayList;
 
 public class Display extends JPanel {
 
+	private class Point
+	{
+		public int x, y;
+		Couleur couleur;
+		
+		public Point(int x, int y, Couleur couleur)
+		{
+			this.x = x;
+			this.y = y;
+			this.couleur = couleur;
+		}
+
+		public Point(Vec2 p, Couleur couleur)
+		{
+			this((int)p.x, (int)p.y, couleur);
+		}
+	}
+	
 	private static final long serialVersionUID = 1L;
 	private ArrayList<Point> points1 = new ArrayList<Point>();
-	private ArrayList<Point> points2 = new ArrayList<Point>();
+//	private ArrayList<Point> points2 = new ArrayList<Point>();
 	private ArrayList<Hyperbola> hyperboles = new ArrayList<Hyperbola>();
 	
 	private boolean afficheFond;
@@ -104,14 +124,14 @@ public class Display extends JPanel {
 			last = p;
 		}
 		
-		last = null;
+/*		last = null;
 		for(Point p : points2)
 		{
 			drawPoint(g, p, 8);
 			if(last != null)
 				drawLine(g, last, p);
 			last = p;
-		}
+		}*/
 	}
 
 	/**
@@ -124,21 +144,22 @@ public class Display extends JPanel {
 		double a = h.delta / 2;
 		double c = h.p1.distance(h.p2) / 2;
 		double b = Math.sqrt(c*c - a*a);
-		Point centre =  new Point((h.p1.x + h.p2.x) / 2, (h.p1.y + h.p2.y) / 2);
+		Vec2 centre =  new Vec2((h.p1.x + h.p2.x) / 2, (h.p1.y + h.p2.y) / 2);
 		double angle = Math.atan2(h.p2.y - h.p1.y, h.p2.x - h.p1.x);
 		double cos = Math.cos(angle);
 		double sin = Math.sin(angle);
-		Point last = null;
+		Point last = null, point;
 		for(double i = -10000; i < 10000; i++)
 		{
 			double x = -a*Math.cosh(i/1000);
 			double y = b*Math.sinh(i/1000);
-			Point p = new Point((int)(cos*x-sin*y), (int)(sin*x+cos*y));
+			Vec2 p = new Vec2((int)(cos*x-sin*y), (int)(sin*x+cos*y));
 			p.x += centre.x;
 			p.y += centre.y;
+			point = new Point(p, Couleur.NOIR);
 			if(last != null)
-			drawLine(g, last, p);
-			last = p;
+				drawLine(g, last, point);
+			last = point;
 		}
 	}
 	
@@ -172,29 +193,34 @@ public class Display extends JPanel {
 		frame.pack();
 		frame.setVisible(true);
 	}
-	
-	public synchronized void addPointList1(Point p)
-	{
-		if(p.x >= -1500 && p.x <= 1500 && p.y >= 0 && p.y <= 2000)
-		{
-			points1.add(p);
-			repaint();
-		}
-	}
 
-	public synchronized void addPointList2(Point p)
+	public synchronized void addPointList1(Vec2 p)
+	{
+		addPointList1(p, Couleur.ROUGE);
+	}
+	
+	public synchronized void addPointList1(Vec2 p, Couleur couleur)
 	{
 		if(p.x >= -1500 && p.x <= 1500 && p.y >= 0 && p.y <= 2000)
 		{
-			points2.add(p);
+			points1.add(new Point(p, couleur));
 			repaint();
 		}
 	}
+/*
+	public synchronized void addPointList2(Vec2 p)
+	{
+		if(p.x >= -1500 && p.x <= 1500 && p.y >= 0 && p.y <= 2000)
+		{
+			points2.add(new Point(p));
+			repaint();
+		}
+	}*/
 
 	public synchronized void clearPoints()
 	{
 		points1.clear();
-		points2.clear();
+//		points2.clear();
 		repaint();
 	}
 	
