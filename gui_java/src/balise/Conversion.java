@@ -77,7 +77,8 @@ public class Conversion {
 					}			
 					timestamps[i] = line.split(";")[1];
 				}
-				out.write(timestamps[0]+";"+timestamps[1]+";"+timestamps[2]);
+				// à vérifier
+				out.write(timestamps[1]+";"+timestamps[0]+";"+timestamps[2]);
 				out.newLine();
 			}
 			
