@@ -18,14 +18,15 @@ public class TestBalise {
 			file.open("../Benchmark/Test acquisition vanilla-chocolate.txt");
 			int[] temps;
 
+//			for(int i = 0; i < 2; i++)
 			while(true)
 			{
 				temps = file.getTemps();
 				if(temps == null)
 					break;
 				Triangulation.computePoints(temps[0], temps[1], temps[2]);
-				display.addPoint(Triangulation.getPoint1());
-				display.addPoint(Triangulation.getPoint2());
+				display.addPointList1(Triangulation.getPoint1());
+				display.addPointList2(Triangulation.getPoint2());
 			}
 
 			file.close();

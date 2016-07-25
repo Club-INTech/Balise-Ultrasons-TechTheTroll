@@ -17,7 +17,8 @@ import java.util.ArrayList;
 public class Display extends JPanel {
 
 	private static final long serialVersionUID = 1L;
-	private ArrayList<Point> points = new ArrayList<Point>();
+	private ArrayList<Point> points1 = new ArrayList<Point>();
+	private ArrayList<Point> points2 = new ArrayList<Point>();
 	private boolean afficheFond;
 	private int sizeX = 900, sizeY = 600; // taille par défaut
 	private Image image;
@@ -82,8 +83,23 @@ public class Display extends JPanel {
 	{
 		if(afficheFond)
 			g.drawImage(image, 0, 0, this);
-		for(Point p : points)
+		Point last = null;
+		for(Point p : points1)
+		{
 			drawPoint(g, p, 8);
+			if(last != null)
+				drawLine(g, last, p);
+			last = p;
+		}
+		
+		last = null;
+		for(Point p : points2)
+		{
+			drawPoint(g, p, 8);
+			if(last != null)
+				drawLine(g, last, p);
+			last = p;
+		}
 	}
 	
 	/**
@@ -101,6 +117,12 @@ public class Display extends JPanel {
 				taille);
 	}
 	
+	public void drawLine(Graphics g, Point p1, Point p2)
+	{
+		g.setColor(Color.BLACK);
+		g.drawLine(XtoWindow(p1.x), YtoWindow(p1.y), XtoWindow(p2.x), YtoWindow(p2.y));
+	}
+	
 	public void showOnFrame()
 	{
 		setBackground(Color.WHITE);
@@ -111,18 +133,28 @@ public class Display extends JPanel {
 		frame.setVisible(true);
 	}
 	
-	public synchronized void addPoint(Point p)
+	public synchronized void addPointList1(Point p)
 	{
 		if(p.x >= -1500 && p.x <= 1500 && p.y >= 0 && p.y <= 2000)
 		{
-			points.add(p);
+			points1.add(p);
 			repaint();
 		}
 	}
-	
+
+	public synchronized void addPointList2(Point p)
+	{
+		if(p.x >= -1500 && p.x <= 1500 && p.y >= 0 && p.y <= 2000)
+		{
+			points2.add(p);
+			repaint();
+		}
+	}
+
 	public synchronized void clearPoints()
 	{
-		points.clear();
+		points1.clear();
+		points2.clear();
 		repaint();
 	}
 	
