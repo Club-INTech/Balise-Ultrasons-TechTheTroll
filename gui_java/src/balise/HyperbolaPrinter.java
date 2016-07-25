@@ -32,9 +32,8 @@ public class HyperbolaPrinter {
 
 				Triangulation.computePoints(temps[0], temps[1], temps[2]);
 				display.addPointList1(Triangulation.getPoint1());
-				display.addPointList2(Triangulation.getPoint2());
 				
-				System.out.println(Triangulation.getPoint1()+" "+Triangulation.getPoint2());
+				System.out.println(Triangulation.getPoint1());
 //				display.saveImage("test.png");
 				
 				try {

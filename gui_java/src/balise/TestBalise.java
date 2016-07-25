@@ -26,7 +26,6 @@ public class TestBalise {
 					break;
 				Triangulation.computePoints(temps[0], temps[1], temps[2]);
 				display.addPointList1(Triangulation.getPoint1());
-				display.addPointList2(Triangulation.getPoint2());
 			}
 			System.out.println("Tous les points sont affichés.");
 			display.saveImage("test.png");
