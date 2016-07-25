@@ -12,10 +12,17 @@ public class TestBalise {
 
 	public static void main(String[] args)
 	{
-		Display display = new Display(true);
+		if(args.length < 1)
+		{
+			System.out.println("Utilisation : java -jar testbalise.jar input-file [-background]");
+			System.out.println("Le fichier d'entrée doit être au format vanille-chocolat.");
+			return;
+		}
+			
+		Display display = new Display(args.length >= 2 && args[1].trim().equals("-background"));
 		FileProcess file = new FileProcess();
 		try {
-			file.open("../Benchmark/out.txt");
+			file.open(args[0]);
 			int[] temps;
 
 //			for(int i = 0; i < 2; i++)
@@ -31,7 +38,7 @@ public class TestBalise {
 			display.saveImage("test.png");
 			file.close();
 		} catch (IOException e1) {
-			e1.printStackTrace();
+			System.out.println(e1);
 		}
 		while(true)
 		{
