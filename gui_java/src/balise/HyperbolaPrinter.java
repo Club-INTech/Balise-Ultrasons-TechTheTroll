@@ -3,6 +3,8 @@ package balise;
 import java.io.IOException;
 import java.util.Scanner;
 
+import filtres.Vec2;
+
 /**
  * Affiche les hyperboles pour un triplet de timestamp
  * @author pf
@@ -28,7 +30,7 @@ public class HyperbolaPrinter {
 				file.open(args[0]);
 			}
 			
-			int[] temps;
+			double[] temps;
 
 			do
 			{
@@ -40,7 +42,7 @@ public class HyperbolaPrinter {
 				}
 				else
 				{
-					temps = new int[3];
+					temps = new double[3];
 					Scanner sc = new Scanner(System.in);
 					System.out.println("Temps de réception à la balise 1 :");
 					temps[0] = Integer.parseInt(sc.nextLine());
@@ -49,18 +51,22 @@ public class HyperbolaPrinter {
 					System.out.println("Temps de réception à la balise 3 :");
 					temps[2] = Integer.parseInt(sc.nextLine());
 					sc.close();
+					
+/*		Vec2 simul = new Vec2(-1200, 500);
+		
+		temps[0] = 1000 + (int)(simul.distance(new Vec2(-1500, 0)) / 0.34);
+		temps[1] = 1000 + (int)(simul.distance(new Vec2(-1500, 2000)) / 0.34);
+		temps[2] = 1000 + (int)(simul.distance(new Vec2(1500, 1000)) / 0.34);
+		
+		System.out.println(temps[0]+" "+temps[1]+" "+temps[2]);*/
 				}
 
-//				System.out.println(temps[1] - temps[0]);
 				display.addHyperbola(new Hyperbola(0, temps[2] - temps[1]));
 				display.addHyperbola(new Hyperbola(1, temps[2] - temps[0]));
 				display.addHyperbola(new Hyperbola(2, temps[1] - temps[0]));
 
-				Triangulation.computePoints(temps[0], temps[1], temps[2]);
-				display.addPointList1(Triangulation.getPoint1());
-				
-				System.out.println(Triangulation.getPoint1());
-				
+				display.addPointList1(Triangulation.computePoints(temps[0], temps[1], temps[2]));
+
 				if(useFile)
 				{
 					try {

@@ -32,10 +32,10 @@ public class FileProcess
 	 * @return
 	 * @throws IOException
 	 */
-	public int[] getTemps() throws IOException
+	public double[] getTemps() throws IOException
 	{
 		String line;
-		int[] out = new int[3];
+		double[] out = new double[3];
 		while(true)
 		{
 			line = br.readLine();

@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import filtres.Filtre;
 import filtres.FiltreMediane;
+import filtres.Vec2;
 
 /**
  * Test des filtres
@@ -31,7 +32,7 @@ public class TestFiltre
 		FileProcess file = new FileProcess();
 		try {
 			file.open(args[0]);
-			int[] temps;
+			double[] temps;
 
 //			for(int i = 0; i < 2; i++)
 			while(true)
@@ -39,9 +40,9 @@ public class TestFiltre
 				temps = file.getTemps();
 				if(temps == null)
 					break;
-				Triangulation.computePoints(temps[0], temps[1], temps[2]);
-				display.addPointList1(Triangulation.getPoint1(), Couleur.BLEU);
-				display.addPointList1(filtre.filtre(temps[0], temps[1], temps[2], Triangulation.getPoint1()));
+				Vec2 solution = Triangulation.computePoints(temps[0], temps[1], temps[2]);
+				display.addPointList1(solution, Couleur.BLEU);
+				display.addPointList1(filtre.filtre(temps[0], temps[1], temps[2], solution));
 			}
 			System.out.println("Tous les points sont affichés.");
 			display.saveImage("test.png");

@@ -28,7 +28,7 @@ public class TestBalise {
 		FileProcess file = new FileProcess();
 		try {
 			file.open(args[0]);
-			int[] temps;
+			double[] temps;
 
 //			for(int i = 0; i < 2; i++)
 			while(true)
@@ -36,8 +36,7 @@ public class TestBalise {
 				temps = file.getTemps();
 				if(temps == null)
 					break;
-				Triangulation.computePoints(temps[0], temps[1], temps[2]);
-				display.addPointList1(Triangulation.getPoint1());
+				display.addPointList1(Triangulation.computePoints(temps[0], temps[1], temps[2]));
 			}
 			System.out.println("Tous les points sont affichés.");
 			display.saveImage("test.png");
