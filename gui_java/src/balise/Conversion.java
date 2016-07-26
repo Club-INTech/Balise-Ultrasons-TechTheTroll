@@ -21,8 +21,8 @@ public class Conversion {
 	public static void main(String[] args)
 	{
 /*		args = new String[2];
-		args[0] = "../Benchmark/P1.txt";
-		args[1] = "../Benchmark/test.txt";
+		args[0] = "../Benchmark/P9.txt";
+		args[1] = "../Benchmark/P9_vanille-chocolat.txt";
 */
 		if(args.length != 2)
 		{
@@ -88,8 +88,7 @@ public class Conversion {
 						timestamps[indice] = line.split(";")[1];
 					}
 				}
-				// TODO à vérifier
-				out.write(timestamps[1]+";"+timestamps[0]+";"+timestamps[2]);
+				out.write(timestamps[0]+";"+timestamps[1]+";"+timestamps[2]);
 				out.newLine();
 			}
 			
