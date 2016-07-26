@@ -62,4 +62,15 @@ public class FileProcess
 		}
 	    return out;
 	}
+	
+/*	public Vec2 getPoint() throws IOException
+	{
+		String line = br.readLine();
+		if(line == null)
+			return null;
+		
+		String[] split = line.split("\t");
+		return new Vec2(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
+	}*/
+
 }
