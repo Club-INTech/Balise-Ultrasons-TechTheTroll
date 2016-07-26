@@ -16,10 +16,10 @@ public class TestFiltre
 {
 	public static void main(String[] args)
 	{
-
+/*
 		args = new String[1];
-		args[0] = "../Benchmark/P2_vanille-chocolat.txt";
-		
+		args[0] = "../Benchmark/Test acquisition vanilla-chocolate.txt";
+	*/	
 		if(args.length < 1)
 		{
 			System.out.println("Utilisation : java -jar testbalise.jar input-file [-background]");
@@ -30,6 +30,7 @@ public class TestFiltre
 		Filtre filtre = new FiltreMediane();
 		Display display = new Display(args.length >= 2 && args[1].trim().equals("-background"));
 		FileProcess file = new FileProcess();
+		
 		try {
 			file.open(args[0]);
 			double[] temps;
@@ -41,8 +42,9 @@ public class TestFiltre
 				if(temps == null)
 					break;
 				Vec2 solution = Triangulation.computePoints(temps[0], temps[1], temps[2]);
-				display.addPointList1(solution, Couleur.BLEU);
-				display.addPointList1(filtre.filtre(temps[0], temps[1], temps[2], solution));
+				display.addPoint(solution, 0);
+				System.out.println(solution);
+				display.addPoint(filtre.filtre(temps[0], temps[1], temps[2], solution), 1);
 			}
 			System.out.println("Tous les points sont affichés.");
 			display.saveImage("test.png");

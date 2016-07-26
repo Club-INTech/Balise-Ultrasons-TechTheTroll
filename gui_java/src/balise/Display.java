@@ -19,29 +19,31 @@ import java.util.ArrayList;
 
 public class Display extends JPanel {
 
+	private static final long serialVersionUID = 1L;
+
 	private class Point
 	{
 		public int x, y;
-		Couleur couleur;
+		Color couleur;
 		
-		public Point(int x, int y, Couleur couleur)
+		public Point(int x, int y, Color couleur)
 		{
 			this.x = x;
 			this.y = y;
 			this.couleur = couleur;
 		}
 
-		public Point(Vec2 p, Couleur couleur)
+		public Point(Vec2 p, Color couleur)
 		{
 			this((int)p.x, (int)p.y, couleur);
 		}
 	}
 	
-	private static final long serialVersionUID = 1L;
-	private ArrayList<Point> points1 = new ArrayList<Point>();
-//	private ArrayList<Point> points2 = new ArrayList<Point>();
+	private static final int nbListe = 3;
+	@SuppressWarnings("unchecked")
+	private ArrayList<Point>[] points = (ArrayList<Point>[]) new ArrayList[nbListe];
 	private ArrayList<Hyperbola> hyperboles = new ArrayList<Hyperbola>();
-	
+	private Color[] couleursDefaut = {Couleur.BLEU.couleur, Couleur.ROUGE.couleur, Couleur.VERT.couleur};
 	private boolean afficheFond;
 	private int sizeX = 900, sizeY = 600; // taille par défaut
 	private Image image;
@@ -52,6 +54,9 @@ public class Display extends JPanel {
 	 */
 	public Display(boolean afficheFond)
 	{
+		for(int i = 0; i < nbListe; i++)
+			points[i] = new ArrayList<Point>();
+
 		this.afficheFond = afficheFond;
 		if(afficheFond)
 		{
@@ -115,13 +120,16 @@ public class Display extends JPanel {
 			drawHyperbola(g, h);
 		}
 
-		Point last = null;
-		for(Point p : points1)
+		for(int i = 0; i < nbListe; i++)
 		{
-			drawPoint(g, p, 8);
-			if(last != null)
-				drawLine(g, last, p);
-			last = p;
+			Point last = null;
+			for(Point p : points[i])
+			{
+				drawPoint(g, p, 8);
+				if(last != null)
+					drawLine(g, last, p);
+				last = p;
+			}
 		}
 		
 /*		last = null;
@@ -156,7 +164,7 @@ public class Display extends JPanel {
 			Vec2 p = new Vec2((int)(cos*x-sin*y), (int)(sin*x+cos*y));
 			p.x += centre.x;
 			p.y += centre.y;
-			point = new Point(p, Couleur.NOIR);
+			point = new Point(p, Couleur.NOIR.couleur);
 			if(last != null)
 				drawLine(g, last, point);
 			last = point;
@@ -171,7 +179,7 @@ public class Display extends JPanel {
 	 */
 	public void drawPoint(Graphics g, Point p, int taille)
 	{
-		g.setColor(p.couleur.couleur);
+		g.setColor(p.couleur);
 		g.fillOval(XtoWindow(p.x)-taille/2,
 				YtoWindow(p.y)-taille/2,
 				taille,
@@ -194,33 +202,24 @@ public class Display extends JPanel {
 		frame.setVisible(true);
 	}
 
-	public synchronized void addPointList1(Vec2 p)
+	public synchronized void addPoint(Vec2 p, int indiceListe)
 	{
-		addPointList1(p, Couleur.ROUGE);
+		addPoint(p, indiceListe, couleursDefaut[indiceListe]);
 	}
 	
-	public synchronized void addPointList1(Vec2 p, Couleur couleur)
+	public synchronized void addPoint(Vec2 p, int indiceListe, Color couleur)
 	{
-		if(p.x >= -1500 && p.x <= 1500 && p.y >= 0 && p.y <= 2000)
+		if(p.x >= -1500 && p.x <= 1500 && p.y >= 0 && p.y <= 2000 && indiceListe >= 0 && indiceListe < nbListe)
 		{
-			points1.add(new Point(p, couleur));
+			points[indiceListe].add(new Point(p, couleur));
 			repaint();
 		}
 	}
-/*
-	public synchronized void addPointList2(Vec2 p)
-	{
-		if(p.x >= -1500 && p.x <= 1500 && p.y >= 0 && p.y <= 2000)
-		{
-			points2.add(new Point(p));
-			repaint();
-		}
-	}*/
-
+	
 	public synchronized void clearPoints()
 	{
-		points1.clear();
-//		points2.clear();
+		for(int i = 0; i < nbListe; i++)
+			points[i].clear();
 		repaint();
 	}
 	

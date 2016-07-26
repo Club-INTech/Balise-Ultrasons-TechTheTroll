@@ -14,7 +14,7 @@ public class TestBalise {
 	{
 		/*
 		args = new String[1];
-		args[0] = "../Benchmark/P2_vanille-chocolat.txt";
+		args[0] = "../Benchmark/Test acquisition vanilla-chocolate.txt";
 */
 		
 		if(args.length < 1)
@@ -36,7 +36,7 @@ public class TestBalise {
 				temps = file.getTemps();
 				if(temps == null)
 					break;
-				display.addPointList1(Triangulation.computePoints(temps[0], temps[1], temps[2]));
+				display.addPoint(Triangulation.computePoints(temps[0], temps[1], temps[2]), 1);
 			}
 			System.out.println("Tous les points sont affichés.");
 			display.saveImage("test.png");

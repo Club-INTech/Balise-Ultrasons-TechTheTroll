@@ -3,8 +3,6 @@ package balise;
 import java.io.IOException;
 import java.util.Scanner;
 
-import filtres.Vec2;
-
 /**
  * Affiche les hyperboles pour un triplet de timestamp
  * @author pf
@@ -65,7 +63,7 @@ public class HyperbolaPrinter {
 				display.addHyperbola(new Hyperbola(1, temps[2] - temps[0]));
 				display.addHyperbola(new Hyperbola(2, temps[1] - temps[0]));
 
-				display.addPointList1(Triangulation.computePoints(temps[0], temps[1], temps[2]));
+				display.addPoint(Triangulation.computePoints(temps[0], temps[1], temps[2]), 1);
 
 				if(useFile)
 				{
