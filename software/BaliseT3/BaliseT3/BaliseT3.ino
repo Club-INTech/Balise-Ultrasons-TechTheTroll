@@ -126,7 +126,7 @@ void setup()
 */
 void loop()
 {
-	while (true);//DEBUG
+	//while (true);//DEBUG
 
 
 	// Objets permettant le calcul de la position
@@ -298,8 +298,8 @@ bool isTooLate(uint8_t indice, volatile uint32_t timeArray[3], volatile bool isW
 
 void isr_INT_80Hz()
 {
-	Serial.printf("0;%u\n", micros());
-	return;
+	//Serial.printf("0;%u\n", micros());
+	//return;
 
 
 
@@ -321,7 +321,7 @@ void isr_INT_80Hz()
 
 void isr_INT_40Hz()
 {
-	return;
+	//return;
 
 	if (isWritingAllowed(rwMode_40Hz, INT, permissionArray_40Hz, isWritten_40Hz))
 	{
@@ -341,8 +341,8 @@ void isr_INT_40Hz()
 
 void isr_C1_80Hz()
 {
-	Serial.printf("1;%u\n", micros());
-	return;
+	//Serial.printf("1;%u\n", micros());
+	//return;
 
 
 	if (isWritingAllowed(rwMode_80Hz, CANAL_1, permissionArray_80Hz, isWritten_80Hz))
@@ -363,7 +363,7 @@ void isr_C1_80Hz()
 
 void isr_C1_40Hz()
 {
-	return;
+	//return;
 
 	if (isWritingAllowed(rwMode_40Hz, CANAL_1, permissionArray_40Hz, isWritten_40Hz))
 	{
@@ -383,8 +383,8 @@ void isr_C1_40Hz()
 
 void isr_C2_80Hz()
 {
-	Serial.printf("2;%u\n", micros());
-	return;
+	//Serial.printf("2;%u\n", micros());
+	//return;
 
 	if (isWritingAllowed(rwMode_80Hz, CANAL_2, permissionArray_80Hz, isWritten_80Hz))
 	{
@@ -404,7 +404,7 @@ void isr_C2_80Hz()
 
 void isr_C2_40Hz()
 {
-	return;
+	//return;
 
 	if (isWritingAllowed(rwMode_40Hz, CANAL_2, permissionArray_40Hz, isWritten_40Hz))
 	{
