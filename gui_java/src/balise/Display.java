@@ -3,7 +3,10 @@ package balise;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
+import filtres.Vec2;
+
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,7 +20,30 @@ import java.util.ArrayList;
 public class Display extends JPanel {
 
 	private static final long serialVersionUID = 1L;
-	private ArrayList<Point> points = new ArrayList<Point>();
+
+	private class Point
+	{
+		public int x, y;
+		Color couleur;
+		
+		public Point(int x, int y, Color couleur)
+		{
+			this.x = x;
+			this.y = y;
+			this.couleur = couleur;
+		}
+
+		public Point(Vec2 p, Color couleur)
+		{
+			this((int)p.x, (int)p.y, couleur);
+		}
+	}
+	
+	private static final int nbListe = 3;
+	@SuppressWarnings("unchecked")
+	private ArrayList<Point>[] points = (ArrayList<Point>[]) new ArrayList[nbListe];
+	private ArrayList<Hyperbola> hyperboles = new ArrayList<Hyperbola>();
+	private Color[] couleursDefaut = {Couleur.BLEU.couleur, Couleur.ROUGE.couleur, Couleur.VERT.couleur};
 	private boolean afficheFond;
 	private int sizeX = 900, sizeY = 600; // taille par défaut
 	private Image image;
@@ -28,6 +54,9 @@ public class Display extends JPanel {
 	 */
 	public Display(boolean afficheFond)
 	{
+		for(int i = 0; i < nbListe; i++)
+			points[i] = new ArrayList<Point>();
+
 		this.afficheFond = afficheFond;
 		if(afficheFond)
 		{
@@ -80,10 +109,66 @@ public class Display extends JPanel {
 	 */
 	public synchronized void paint(Graphics g)
 	{
+		g.setColor(Color.WHITE);
 		if(afficheFond)
 			g.drawImage(image, 0, 0, this);
-		for(Point p : points)
+		else
+			g.fillRect(0, 0, sizeX, sizeY);
+
+		for(Hyperbola h : hyperboles)
+		{
+			drawHyperbola(g, h);
+		}
+
+		for(int i = 0; i < nbListe; i++)
+		{
+			Point last = null;
+			for(Point p : points[i])
+			{
+				drawPoint(g, p, 8);
+				if(last != null)
+					drawLine(g, last, p);
+				last = p;
+			}
+		}
+		
+/*		last = null;
+		for(Point p : points2)
+		{
 			drawPoint(g, p, 8);
+			if(last != null)
+				drawLine(g, last, p);
+			last = p;
+		}*/
+	}
+
+	/**
+	 * Affichage d'une hyperbole
+	 * @param g
+	 * @param h
+	 */
+	public void drawHyperbola(Graphics g, Hyperbola h)
+	{
+		double a = h.delta / 2;
+		double c = h.p1.distance(h.p2) / 2;
+		double b = Math.sqrt(c*c - a*a);
+		Vec2 centre =  new Vec2((h.p1.x + h.p2.x) / 2, (h.p1.y + h.p2.y) / 2);
+		double angle = Math.atan2(h.p2.y - h.p1.y, h.p2.x - h.p1.x);
+		double cos = Math.cos(angle);
+		double sin = Math.sin(angle);
+		Point last = null, point;
+		for(double i = -10000; i < 10000; i++)
+		{
+			double x = -a*Math.cosh(i/1000);
+			double y = b*Math.sinh(i/1000);
+			Vec2 p = new Vec2((int)(cos*x-sin*y), (int)(sin*x+cos*y));
+			p.x += centre.x;
+			p.y += centre.y;
+			point = new Point(p, Couleur.NOIR.couleur);
+			if(last != null)
+				drawLine(g, last, point);
+			last = point;
+		}
 	}
 	
 	/**
@@ -94,11 +179,17 @@ public class Display extends JPanel {
 	 */
 	public void drawPoint(Graphics g, Point p, int taille)
 	{
-		g.setColor(p.couleur.couleur);
+		g.setColor(p.couleur);
 		g.fillOval(XtoWindow(p.x)-taille/2,
 				YtoWindow(p.y)-taille/2,
 				taille,
 				taille);
+	}
+	
+	public void drawLine(Graphics g, Point p1, Point p2)
+	{
+		g.setColor(Color.BLACK);
+		g.drawLine(XtoWindow(p1.x), YtoWindow(p1.y), XtoWindow(p2.x), YtoWindow(p2.y));
 	}
 	
 	public void showOnFrame()
@@ -110,20 +201,54 @@ public class Display extends JPanel {
 		frame.pack();
 		frame.setVisible(true);
 	}
-	
-	public synchronized void addPoint(Point p)
+
+	public synchronized void addPoint(Vec2 p, int indiceListe)
 	{
-		if(p.x >= -1500 && p.x <= 1500 && p.y >= 0 && p.y <= 2000)
+		addPoint(p, indiceListe, couleursDefaut[indiceListe]);
+	}
+	
+	public synchronized void addPoint(Vec2 p, int indiceListe, Color couleur)
+	{
+		if(p.x >= -1500 && p.x <= 1500 && p.y >= 0 && p.y <= 2000 && indiceListe >= 0 && indiceListe < nbListe)
 		{
-			points.add(p);
+			points[indiceListe].add(new Point(p, couleur));
 			repaint();
 		}
 	}
 	
 	public synchronized void clearPoints()
 	{
-		points.clear();
+		for(int i = 0; i < nbListe; i++)
+			points[i].clear();
 		repaint();
+	}
+	
+	public synchronized void addHyperbola(Hyperbola h)
+	{
+		hyperboles.add(h);
+		repaint();
+	}
+
+	public synchronized void clearHyperboles()
+	{
+		hyperboles.clear();
+		repaint();
+	}
+
+
+	/**
+	 * Sauvegarde (en png) l'image
+	 * @param filename
+	 */
+	public void saveImage(String filename)
+	{
+		BufferedImage bi = new BufferedImage(sizeX, sizeY, BufferedImage.TYPE_INT_RGB);
+		paint(bi.getGraphics());
+	    try {
+			ImageIO.write(bi, "PNG", new File(filename));
+		} catch (IOException e) {
+			System.err.println(e);
+		}
 	}
 	
 }

@@ -1178,6 +1178,34 @@ def script_random_trajectory_unscented_ivan():
 
     print get_mer(real_path, l_pos_filter)
 
+def script_trajectoire_filtree_test_p1():
+    """
+    Script utilisant le filtre de Kalman  avec des mesures réelles !
+    :return:
+    """
+    print "script_classic_trajectory_with_real_measures"
+    dt = 0.012
+    measures_pos = np.genfromtxt("/home/clemsciences/PycharmProjects/balise-t3/Benchmark/P1-brut.txt", delimiter="\t")
+    real_path = []
+    for i in range(measures_pos.shape[0]):
+        x = measures_pos[i, 0]
+        y = measures_pos[i, 1]
+        real_path.append(Point(x, y))
+
+    l_pos_filtre = [real_path[0]]
+    vite = get_velocity(measures_pos, dt)
+    measures = np.concatenate((measures_pos, vite), axis=1)
+    measures = np.asmatrix(measures)
+    filtering = FiltrageKalman(measures[0, :].T, dt=dt)
+    with open("./filtered_values_pos_to_pos/P1-brut-filtre-12ms.txt", "w") as f:
+        for i in range(1, measures.shape[0]):
+            x = measures[i, 0]
+            y = measures[i, 1]
+            filtering.update(x, y)
+            pos = filtering.get_current_position()
+            f.write(str(int(pos.x))+"\t"+str(int(pos.y))+"\n")
+            l_pos_filtre.append(pos)
+    print get_mer(real_path, l_pos_filtre)
 
 if __name__ == "__main__":
     # script_unscented_with_real_measures()
@@ -1186,7 +1214,7 @@ if __name__ == "__main__":
     #
     #
     # """
-    script_unscented_with_fixed_trajectory_only()
+    # script_unscented_with_fixed_trajectory_only()
     # script_unscented_trajectory()
     # script_unscented_trajectory_with_file()
     # print """
@@ -1202,3 +1230,4 @@ if __name__ == "__main__":
     # script_random_unscented_ivan()
     # script_random_trajectory_unscented_ivan()
     # lire_fic_opti()
+    script_trajectoire_filtree_test_p1()

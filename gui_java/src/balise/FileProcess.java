@@ -32,10 +32,10 @@ public class FileProcess
 	 * @return
 	 * @throws IOException
 	 */
-	public int[] getTemps() throws IOException
+	public double[] getTemps() throws IOException
 	{
 		String line;
-		int[] out = new int[3];
+		double[] out = new double[3];
 		while(true)
 		{
 			line = br.readLine();
@@ -62,4 +62,15 @@ public class FileProcess
 		}
 	    return out;
 	}
+	
+/*	public Vec2 getPoint() throws IOException
+	{
+		String line = br.readLine();
+		if(line == null)
+			return null;
+		
+		String[] split = line.split("\t");
+		return new Vec2(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
+	}*/
+
 }

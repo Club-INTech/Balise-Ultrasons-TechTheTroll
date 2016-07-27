@@ -12,25 +12,37 @@ public class TestBalise {
 
 	public static void main(String[] args)
 	{
-		Display display = new Display(false);
+		/*
+		args = new String[1];
+		args[0] = "../Benchmark/Test acquisition vanilla-chocolate.txt";
+*/
+		
+		if(args.length < 1)
+		{
+			System.out.println("Utilisation : java -jar testbalise.jar input-file [-background]");
+			System.out.println("Le fichier d'entrée doit être au format vanille-chocolat.");
+			return;
+		}
+			
+		Display display = new Display(args.length >= 2 && args[1].trim().equals("-background"));
 		FileProcess file = new FileProcess();
 		try {
-			file.open("../Benchmark/Test acquisition vanilla-chocolate.txt");
-			int[] temps;
+			file.open(args[0]);
+			double[] temps;
 
+//			for(int i = 0; i < 2; i++)
 			while(true)
 			{
 				temps = file.getTemps();
 				if(temps == null)
 					break;
-				Triangulation.computePoints(temps[0], temps[1], temps[2]);
-				display.addPoint(Triangulation.getPoint1());
-				display.addPoint(Triangulation.getPoint2());
+				display.addPoint(Triangulation.computePoints(temps[0], temps[1], temps[2]), 1);
 			}
-
+			System.out.println("Tous les points sont affichés.");
+			display.saveImage("test.png");
 			file.close();
 		} catch (IOException e1) {
-			e1.printStackTrace();
+			System.out.println(e1);
 		}
 		while(true)
 		{
