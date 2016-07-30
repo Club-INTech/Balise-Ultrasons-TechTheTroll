@@ -1,11 +1,12 @@
+
 #ifndef _COMMUNICATION_h
 #define _COMMUNICATION_h
 
-#if defined(ARDUINO) && ARDUINO >= 100
-	#include "arduino.h"
-#else
+//#if defined(ARDUINO) && ARDUINO >= 100
+	//#include "arduino.h"
+//#else
 	#include "WProgram.h"
-#endif
+//#endif
 
 #include <XBee.h>
 
@@ -18,11 +19,11 @@
 	Longueur de tramme : 7 octets
 	tramme[0] : identifiant balise (F80Hz ou F40Hz)
 	
-	Coordonnée X (indices 1-2) : uint16_t
+	Coordonnï¿½e X (indices 1-2) : uint16_t
 		tramme[1] : octet de poids fort
 		tramme[2] : octet de poids faible
 
-	Coordonnée Y (indices 3-4) : uint16_t
+	Coordonnï¿½e Y (indices 3-4) : uint16_t
 		tramme[3] : octet de poids fort
 		tramme[4] : octet de poids faible
 */
@@ -36,8 +37,8 @@ public:
 	void init(HardwareSerial & serial);
 
 	/* 
-		Formate et envoi les données (x,y) précédées d'un indicateur identifiant la balise source de ces données 
-		Unité : mm	
+		Formate et envoi les donnï¿½es (x,y) prï¿½cï¿½dï¿½es d'un indicateur identifiant la balise source de ces donnï¿½es 
+		Unitï¿½ : mm	
 	*/
 	void sendPosition(float x, float y, bool is80Hz);
 

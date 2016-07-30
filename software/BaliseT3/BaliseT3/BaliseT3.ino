@@ -1,7 +1,7 @@
 /*
 	Projet Balise T3
-	Code du microcontrôleur embarqué dans la balise fixe
-	Compatible avec Teensy 3.1 ou ultérieur
+	Code du microcontrï¿½leur embarquï¿½ dans la balise fixe
+	Compatible avec Teensy 3.1 ou ultï¿½rieur
 
 	Auteur : Sylvain GAULTIER
 	Date : Mai 2016
@@ -12,7 +12,7 @@
 #include "enum.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <XBee\XBee.h>
+#include <XBee.h>
 
 /*
 	### PIN MAPPING ###
@@ -31,37 +31,37 @@
 #define PIN_DEL_INT		6
 
 /*
-	### Variables d'aquisition des données ###
+	### Variables d'aquisition des donnï¿½es ###
 */
 
-// Assignation d'une balise à chaque case du tableau
+// Assignation d'une balise ï¿½ chaque case du tableau
 #define CANAL_1	0
 #define CANAL_2	1
 #define INT		2
 
-// Définition des modes "Lecture" et "Ecriture" les tableaux de données
-#define READ	0	// Mode traitement des données
-#define WRITE	1	// Mode acquisition de données
+// Dï¿½finition des modes "Lecture" et "Ecriture" les tableaux de donnï¿½es
+#define READ	0	// Mode traitement des donnï¿½es
+#define WRITE	1	// Mode acquisition de donnï¿½es
 
-// Delta-T maximum entre deux acquisitions supposées voisines
-#define MAX_GAP	6250	// µs
+// Delta-T maximum entre deux acquisitions supposï¿½es voisines
+#define MAX_GAP	6250	// ï¿½s
 
-// Tableau de stockage des instants de réception des signaux
+// Tableau de stockage des instants de rï¿½ception des signaux
 volatile uint32_t timeArray_80Hz[3];
 volatile uint32_t timeArray_40Hz[3];
 
-// Tableau des permissions d'écriture
+// Tableau des permissions d'ï¿½criture
 volatile Permission permissionArray_80Hz[3];
 volatile Permission permissionArray_40Hz[3];
 
 volatile bool rwMode_80Hz; // vaut 'READ' ou 'WRITE'
 volatile bool rwMode_40Hz;
 
-// Tableau indiquant si la case correspondante a été mise à jour
+// Tableau indiquant si la case correspondante a ï¿½tï¿½ mise ï¿½ jour
 volatile bool isWritten_80Hz[3];
 volatile bool isWritten_40Hz[3];
 
-// Pour envoyer les données finales via la xBee
+// Pour envoyer les donnï¿½es finales via la xBee
 Communication commXBee;
 
 
@@ -114,7 +114,7 @@ void setup()
 	attachInterrupt(PIN_C2_80HZ, isr_C2_80Hz, RISING);
 	attachInterrupt(PIN_C2_40HZ, isr_C2_40Hz, CHANGE);
 
-	// Indication du démarrage de la balise
+	// Indication du dï¿½marrage de la balise
 	digitalWrite(PIN_DEL_POWER, HIGH);
 	digitalWrite(PIN_DEL_ONBOARD, HIGH);
 }
@@ -122,7 +122,7 @@ void setup()
 
 
 /*
-	### Boucle de lecture et de traitement des données ###
+	### Boucle de lecture et de traitement des donnï¿½es ###
 */
 void loop()
 {
@@ -134,7 +134,7 @@ void loop()
 	Positionning kalman_40Hz;
 
 	/*
-		Position calculée, en mm
+		Position calculï¿½e, en mm
 	*/
 	float positionX_80Hz = 0;
 	float positionY_80Hz = 1000;
@@ -155,7 +155,7 @@ void loop()
 			// DEBUG 
 			Serial.printf("%u;%u;%u\n", timeArray_80Hz[CANAL_1], timeArray_80Hz[CANAL_2], timeArray_80Hz[INT]);
 
-			// Mise à jour des permissions en fonction de la position
+			// Mise ï¿½ jour des permissions en fonction de la position
 			updatePermissions(positionX_80Hz, positionY_80Hz, permissionArray_80Hz);
 
 			// Passage en mode 'Acquisition'
@@ -177,7 +177,7 @@ void loop()
 			// DEBUG
 			//Serial.printf("#40#%u;%u;%u\n", timeArray_40Hz[CANAL_1], timeArray_40Hz[CANAL_2], timeArray_40Hz[INT]);
 
-			// Mise à jour des permissions en fonction de la position
+			// Mise ï¿½ jour des permissions en fonction de la position
 			updatePermissions(positionX_40Hz, positionY_40Hz, permissionArray_40Hz);
 
 			// Passage en mode 'Acquisition'
@@ -273,7 +273,7 @@ bool isWritingAllowed(bool rwMode, uint8_t indice, volatile Permission permissio
 
 
 /*
-	Indique si le temps stocké à l'indice 'indice' est trop en retard par rapport aux autres temps déjà enregistrés
+	Indique si le temps stockï¿½ ï¿½ l'indice 'indice' est trop en retard par rapport aux autres temps dï¿½jï¿½ enregistrï¿½s
 */
 bool isTooLate(uint8_t indice, volatile uint32_t timeArray[3], volatile bool isWritten[3])
 {
@@ -293,7 +293,7 @@ bool isTooLate(uint8_t indice, volatile uint32_t timeArray[3], volatile bool isW
 
 
 /*
-	### Interruptions d'acquisition des données ###
+	### Interruptions d'acquisition des donnï¿½es ###
 */
 
 void isr_INT_80Hz()

@@ -1,13 +1,13 @@
 #ifndef _ENUM_h
 #define _ENUM_h
 
-#if defined(ARDUINO) && ARDUINO >= 100
-	#include "arduino.h"
-#else
+//#if defined(ARDUINO) && ARDUINO >= 100
+	//#include "arduino.h"
+//#else
 	#include "WProgram.h"
-#endif
+//#endif
 
-// Définition des permissions d'écriture
+// Dï¿½finition des permissions d'ï¿½criture
 enum Permission
 {
 	CAN_BE_FIRST,
